@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Nito.AsyncEx;
+
 namespace MUnique.OpenMU.GameServer;
 
 using System.ComponentModel;
@@ -12,7 +14,6 @@ using MUnique.OpenMU.DataModel;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
-using MUnique.OpenMU.GameLogic.Properties;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Guild;
 using MUnique.OpenMU.GameLogic.Views.Login;
@@ -20,7 +21,6 @@ using MUnique.OpenMU.GameLogic.Views.Messenger;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.PlugIns;
-using Nito.AsyncEx;
 
 /// <summary>
 /// The game server to which game clients can connect.
@@ -46,7 +46,6 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
     /// <param name="friendServer">The friend server.</param>
     /// <param name="loggerFactory">The logger factory.</param>
     /// <param name="plugInManager">The plug in manager.</param>
-    /// <param name="changeMediator"> The change mediatior.</param>
     public GameServer(
         GameServerDefinition gameServerDefinition,
         IGuildServer guildServer,
@@ -270,7 +269,7 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
         var player = this._gameContext.GetPlayerByCharacterName(playerName);
         if (player != null)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.DisconnectedByGameMaster)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("You got disconnected by a game master.", MessageType.BlueNormal)).ConfigureAwait(false);
             await player.DisconnectAsync().ConfigureAwait(false);
             return true;
         }
@@ -285,7 +284,7 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
         var player = players.FirstOrDefault(p => p.Account?.LoginName == accountName);
         if (player != null)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.DisconnectedByAdmin)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("You got disconnected by an administrator.", MessageType.BlueNormal)).ConfigureAwait(false);
             await player.DisconnectAsync().ConfigureAwait(false);
             return true;
         }
@@ -300,7 +299,7 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
         if (player?.Account is not null)
         {
             player.Account.State = AccountState.TemporarilyBanned;
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.TemporaryBanByGameMaster)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Your account has been temporarily banned by a game master.", MessageType.BlueNormal)).ConfigureAwait(false);
             await player.DisconnectAsync().ConfigureAwait(false);
             return true;
         }
@@ -320,18 +319,6 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
         player.GuildStatus = guildStatus;
         await player.ForEachWorldObserverAsync<IAssignPlayersToGuildPlugIn>(p => p.AssignPlayerToGuildAsync(player, true), true).ConfigureAwait(false);
         await this.Context.RegisterGuildMemberAsync(player).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
-    public async ValueTask PlayerAlreadyLoggedInAsync(byte serverId, string loginName)
-    {
-        var players = await this._gameContext.GetPlayersAsync().ConfigureAwait(false);
-        var affectedPlayer = players.FirstOrDefault(p => p.Account?.LoginName == loginName);
-
-        if (affectedPlayer is not null)
-        {
-            await affectedPlayer.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.LoginAttemptWarning)).ConfigureAwait(false);
-        }
     }
 
     /// <inheritdoc/>
@@ -401,7 +388,7 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
     /// Creates an instance of <see cref="ServerInfo"/> with the data of this instance.
     /// </summary>
     /// <returns>The created <see cref="ServerInfo"/>.</returns>
-    public ServerInfo CreateServerInfo() => new(this.Id, this.Description, this.CurrentConnections, this.MaximumConnections);
+    public ServerInfo CreateServerInfo() => new (this.Id, this.Description, this.CurrentConnections, this.MaximumConnections);
 
     /// <inheritdoc/>
     public override string ToString()
@@ -442,13 +429,9 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
 
     private async ValueTask OnPlayerDisconnectedAsync(Player remotePlayer)
     {
-        if (!remotePlayer.IsTemplatePlayer)
-        {
-            await this.SaveSessionOfPlayerAsync(remotePlayer).ConfigureAwait(false);
-            await this.SetOfflineAtLoginServerAsync(remotePlayer).ConfigureAwait(false);
-        }
-
-        await remotePlayer.DisposeAsync().ConfigureAwait(false);
+        await this.SaveSessionOfPlayerAsync(remotePlayer).ConfigureAwait(false);
+        await this.SetOfflineAtLoginServerAsync(remotePlayer).ConfigureAwait(false);
+        remotePlayer.Dispose();
         this.OnPropertyChanged(nameof(this.CurrentConnections));
     }
 
@@ -471,7 +454,7 @@ public sealed class GameServer : IGameServer, IDisposable, IGameServerContextPro
     {
         try
         {
-            if (!await player.SaveProgressAsync().ConfigureAwait(false))
+            if (!await player.PersistenceContext.SaveChangesAsync().ConfigureAwait(false))
             {
                 this._logger.LogWarning($"Could not save session of player {player}");
             }

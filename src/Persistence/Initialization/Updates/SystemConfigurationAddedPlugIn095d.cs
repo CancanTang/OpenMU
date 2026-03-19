@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// This updates adds the new <see cref="SystemConfiguration"/> with default settings
 /// for version 0.95d.
 /// </summary>
-[PlugIn]
-[Display(Name = PlugInName, Description = PlugInDescription)]
+[PlugIn(PlugInName, PlugInDescription)]
 [Guid("EC9FE71E-5C6C-456A-AC75-428EBA3FF626")]
 public class SystemConfigurationAddedPlugIn095d : SystemConfigurationAddedPlugInBase
 {

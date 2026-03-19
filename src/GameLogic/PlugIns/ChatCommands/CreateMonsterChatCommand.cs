@@ -13,9 +13,8 @@ using MUnique.OpenMU.PlugIns;
 /// A chat command to create a new monster which can be remote controlled.
 /// </summary>
 [Guid("BF4DA282-8CFE-4110-B1C5-A01D3F224FAB")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CreateMonsterChatCommand_Name), Description = nameof(PlugInResources.CreateMonsterChatCommand_Description), ResourceType = typeof(PlugInResources))]
-[ChatCommandHelp(Command, typeof(CreateMonsterChatCommandArgs), CharacterStatus.GameMaster)]
+[PlugIn("Create monster chat command", "Handles the chat command '/createmonster <number> <intelligent>'. Creates a monster which can be remote controlled by the GM.")]
+[ChatCommandHelp(Command, "Creates a monster which can be remote controlled by the game master.", typeof(CreateMonsterChatCommandArgs), CharacterStatus.GameMaster)]
 internal class CreateMonsterChatCommand : ChatCommandPlugInBase<CreateMonsterChatCommandArgs>
 {
     private const string Command = "/createmonster";
@@ -32,7 +31,7 @@ internal class CreateMonsterChatCommand : ChatCommandPlugInBase<CreateMonsterCha
         var monsterDef = gameMaster.GameContext.Configuration.Monsters.FirstOrDefault(m => m.Number == arguments.MonsterNumber);
         if (monsterDef is null)
         {
-            await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MonsterNotFoundByNumber), arguments.MonsterNumber).ConfigureAwait(false);
+            await this.ShowMessageToAsync(gameMaster, $"Monster with number {arguments.MonsterNumber} not found.").ConfigureAwait(false);
             return;
         }
 
@@ -57,6 +56,7 @@ internal class CreateMonsterChatCommand : ChatCommandPlugInBase<CreateMonsterCha
         await gameMap.AddAsync(monster).ConfigureAwait(false);
         monster.OnSpawn();
 
-        await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MonsterCreatedByGameMaster), arguments.MonsterNumber, monster.Id).ConfigureAwait(false);
+
+        await this.ShowMessageToAsync(gameMaster, $"Monster with number {arguments.MonsterNumber} created, id: {monster.Id}.").ConfigureAwait(false);
     }
 }

@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the chat view which is forwarding everything to the game client which specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PetAttackViewPlugIn_Name), Description = nameof(PlugInResources.PetAttackViewPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(PetAttackViewPlugIn), "View plugin to show pet attacks.")]
 [Guid("1796C164-ABB8-4AD5-89E2-EA905D20036D")]
 internal class PetAttackViewPlugIn : IPetAttackViewPlugIn
 {
@@ -32,7 +31,7 @@ internal class PetAttackViewPlugIn : IPetAttackViewPlugIn
     }
 
     /// <inheritdoc />
-    public async ValueTask ShowPetAttackAnimationAsync(IIdentifiable owner, Item pet, IAttackable target, PetAttackType attackType)
+    public async ValueTask ShowPetAttackAnimation(IIdentifiable owner, Item pet, IAttackable target, PetAttackType attackType)
     {
         await this._player.Connection.SendPetAttackAsync(
             Convert(attackType),

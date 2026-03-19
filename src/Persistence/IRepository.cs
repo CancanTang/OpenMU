@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.Persistence;
 
 using System.Collections;
-using System.Threading;
 
 /// <summary>
 /// A base repository which can return an object by an id.
@@ -16,17 +15,14 @@ public interface IRepository
     /// Gets the object by an identifier.
     /// </summary>
     /// <param name="id">The identifier.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// The loaded object, or null if not found.
-    /// </returns>
-    ValueTask<object?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    /// <returns>The object.</returns>
+    ValueTask<object?> GetByIdAsync(Guid id);
 
     /// <summary>
     /// Deletes the specified object when the unit of work is saved.
     /// </summary>
     /// <param name="obj">The object.</param>
-    /// <returns>The success of the delete operation.</returns>
+    /// <returns>The success.</returns>
     ValueTask<bool> DeleteAsync(object obj);
 
     /// <summary>
@@ -39,11 +35,8 @@ public interface IRepository
     /// <summary>
     /// Gets all objects.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// All objects of the repository.
-    /// </returns>
-    ValueTask<IEnumerable> GetAllAsync(CancellationToken cancellationToken = default);
+    /// <returns>All objects of the repository.</returns>
+    ValueTask<IEnumerable> GetAllAsync();
 }
 
 /// <summary>
@@ -56,19 +49,13 @@ public interface IRepository<T> : IRepository
     /// <summary>
     /// Gets all objects.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// All objects of the repository.
-    /// </returns>
-    new ValueTask<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default);
+    /// <returns>All objects of the repository.</returns>
+    new ValueTask<IEnumerable<T>> GetAllAsync();
 
     /// <summary>
     /// Gets an object by identifier.
     /// </summary>
     /// <param name="id">The identifier.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// The object with the identifier.
-    /// </returns>
-    new ValueTask<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    /// <returns>The object with the identifier.</returns>
+    new ValueTask<T?> GetByIdAsync(Guid id);
 }

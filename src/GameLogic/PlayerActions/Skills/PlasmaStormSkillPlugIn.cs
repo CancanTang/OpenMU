@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handles the plasma storm skill of the fenrir pet. It randomly halves the durability of a target's equipped item.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PlasmaStormSkillPlugIn_Name), Description = nameof(PlugInResources.PlasmaStormSkillPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Plasma Storm Skill", "Handles the plasma storm skill of the fenrir pet. It randomly halves the durability of a target's equipped item.")]
 [Guid("5EF7C564-B32B-4630-9380-0233BECFA663")]
 public class PlasmaStormSkillPlugIn : IAreaSkillPlugIn
 {
@@ -22,7 +21,7 @@ public class PlasmaStormSkillPlugIn : IAreaSkillPlugIn
     public short Key => 76;
 
     /// <inheritdoc />
-    public async ValueTask AfterTargetGotAttackedAsync(IAttacker attacker, IAttackable target, SkillEntry skillEntry, Point targetAreaCenter, HitInfo? hitInfo)
+    public async ValueTask AfterTargetGotAttackedAsync(IAttacker attacker, IAttackable target, SkillEntry skillEntry, Point targetAreaCenter)
     {
         if (target is Player targetPlayer
             && Rand.NextRandomBool(25)

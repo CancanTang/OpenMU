@@ -32,12 +32,6 @@ public class HitAction
             return;
         }
 
-        if (attributes[Stats.IsAsleep] > 0)
-        {
-            player.Logger.LogWarning($"Probably Hacker - player {player} is attacking in asleep state");
-            return;
-        }
-
         if (player.IsAtSafezone())
         {
             player.Logger.LogWarning($"Probably Hacker - player {player} is attacking from safezone");
@@ -82,7 +76,7 @@ public class HitAction
 
         var modifier = skill.ElementalModifierTarget!;
         var resistance = target.Attributes[modifier];
-        if (resistance >= 255 || !Rand.NextRandomBool(1 / (resistance + 1)))
+        if (resistance >= 1.0f || !Rand.NextRandomBool(1.0f - resistance))
         {
             return (skill, effectApplied);
         }

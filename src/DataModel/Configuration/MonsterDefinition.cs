@@ -228,7 +228,7 @@ public partial class MonsterDefinition
     /// Gets or sets the designation of this monster.
     /// Not relevant for the server, however helpful for debugging/logging.
     /// </summary>
-    public LocalizedString Designation { get; set; }
+    public string Designation { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the range in which a monster will move randomly?

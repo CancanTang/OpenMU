@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IShowVaultLockChangeResponse"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ShowVaultLockChangeResponsePlugIn_Name), Description = nameof(PlugInResources.ShowVaultLockChangeResponsePlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(ShowVaultLockChangeResponsePlugIn), "The default implementation of the IShowVaultLockChangeResponse which is forwarding everything to the game client with specific data packets.")]
 [Guid("3F8A1129-A139-4BD7-9122-EE0D189C5F39")]
 public class ShowVaultLockChangeResponsePlugIn : IShowVaultLockChangeResponse
 {

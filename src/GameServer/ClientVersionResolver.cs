@@ -28,12 +28,7 @@ public static class ClientVersionResolver
     /// <param name="clientVersion">The client version.</param>
     public static void Register(Span<byte> versionBytes, ClientVersion clientVersion)
     {
-        long key = 0;
-        if (versionBytes.Length >= 5)
-        {
-            key = CalculateVersionValue(versionBytes);
-        }
-
+        var key = CalculateVersionValue(versionBytes);
         Versions[key] = clientVersion;
         if (!VersionBytes.ContainsKey(clientVersion))
         {
@@ -58,8 +53,7 @@ public static class ClientVersionResolver
     /// <returns>The resolved client version.</returns>
     public static ClientVersion Resolve(Span<byte> version)
     {
-        var versionValue = CalculateVersionValue(version);
-        if (Versions.TryGetValue(versionValue, out var clientVersion))
+        if (Versions.TryGetValue(CalculateVersionValue(version), out var clientVersion))
         {
             return clientVersion;
         }
@@ -67,5 +61,5 @@ public static class ClientVersionResolver
         return DefaultVersion;
     }
 
-    private static long CalculateVersionValue(Span<byte> versionBytes) => (versionBytes.MakeDwordSmallEndian(0) * 0x100L) + versionBytes[4];
+    private static long CalculateVersionValue(Span<byte> versionBytes) => (versionBytes.MakeDwordSmallEndian(0) * 0x100) + versionBytes[4];
 }

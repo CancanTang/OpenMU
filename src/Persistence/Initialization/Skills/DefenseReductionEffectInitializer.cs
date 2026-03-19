@@ -39,9 +39,9 @@ public class DefenseReductionEffectInitializer : InitializerBase
 
         var reduceDefenseEffect = this.Context.CreateNew<PowerUpDefinition>();
         magicEffect.PowerUpDefinitions.Add(reduceDefenseEffect);
-        reduceDefenseEffect.TargetAttribute = Stats.DefenseDecrement.GetPersistent(this.GameConfiguration);
+        reduceDefenseEffect.TargetAttribute = Stats.DefenseBase.GetPersistent(this.GameConfiguration);
         reduceDefenseEffect.Boost = this.Context.CreateNew<PowerUpDefinitionValue>();
-        reduceDefenseEffect.Boost.ConstantValue.Value = 0.9f; // 10% decrease
+        reduceDefenseEffect.Boost.ConstantValue.Value = 0.9f;
         reduceDefenseEffect.Boost.ConstantValue.AggregateType = AggregateType.Multiplicate;
     }
 }

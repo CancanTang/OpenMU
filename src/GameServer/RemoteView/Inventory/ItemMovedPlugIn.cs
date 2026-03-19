@@ -16,8 +16,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IItemMovedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ItemMovedPlugIn_Name), Description = nameof(PlugInResources.ItemMovedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ItemMovedPlugIn", "The default implementation of the IItemMovedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("5c4c20fe-763d-42b6-bdfa-2ec943b191bc")]
 public class ItemMovedPlugIn : IItemMovedPlugIn
 {
@@ -47,18 +46,16 @@ public class ItemMovedPlugIn : IItemMovedPlugIn
 
         int Write()
         {
-            var size = ItemMovedRef.GetRequiredSize(itemSerializer.NeededSpace);
+            var size = ItemMovedRef.GetRequiredSize(ItemMovedRef.GetRequiredSize(itemSerializer.NeededSpace));
             var span = connection.Output.GetSpan(size)[..size];
             var message = new ItemMovedRef(span)
             {
                 TargetStorageType = targetStorage,
                 TargetSlot = toSlot,
             };
-            var itemSize = itemSerializer.SerializeItem(message.ItemData, item);
+            itemSerializer.SerializeItem(message.ItemData, item);
 
-            var actualSize = ItemMovedRef.GetRequiredSize(itemSize);
-            span.Slice(0, actualSize).SetPacketSize();
-            return actualSize;
+            return size;
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);

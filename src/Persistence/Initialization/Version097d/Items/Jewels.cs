@@ -39,13 +39,12 @@ public class Jewels : Version095d.Items.Jewels
         itemDefinition.Name = "Jewel of Creation";
         itemDefinition.Number = 22;
         itemDefinition.Group = 14;
-        itemDefinition.DropsFromMonsters = false;
+        itemDefinition.DropsFromMonsters = true;
         itemDefinition.DropLevel = 72;
         itemDefinition.Durability = 1;
         itemDefinition.Width = 1;
         itemDefinition.Height = 1;
         itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
-        this.AddItemToJewelItemDrop(itemDefinition);
         return itemDefinition;
     }
 }

@@ -15,7 +15,7 @@ public partial class SkillComboDefinition
     /// <summary>
     /// Gets or sets the name of the combo sequence.
     /// </summary>
-    public LocalizedString Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the maximum time until the final step has to be done.
@@ -27,10 +27,4 @@ public partial class SkillComboDefinition
     /// </summary>
     [MemberOfAggregate]
     public virtual ICollection<SkillComboStep> Steps { get; protected set; } = null!;
-
-    /// <inheritdoc />
-    public override string? ToString()
-    {
-        return this.Name.ToString();
-    }
 }

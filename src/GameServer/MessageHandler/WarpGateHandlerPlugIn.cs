@@ -17,15 +17,14 @@ using MUnique.OpenMU.PlugIns;
 /// Handler for warp gate packets.
 /// This one is called when a player has entered a gate area, and sends a gate enter request.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.WarpGateHandlerPlugIn_Name), Description = nameof(PlugInResources.WarpGateHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(WarpGateHandlerPlugIn), "Handler for warp gate packets.")]
 [Guid("d8f56da4-774b-42af-96ac-12a10ea0187b")]
 [MinimumClient(1, 0, ClientLanguage.Invariant)]
 internal class WarpGateHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly WarpGateAction _warpAction = new();
+    private readonly WarpGateAction _warpAction = new ();
 
-    private readonly WizardTeleportAction _teleportAction = new();
+    private readonly WizardTeleportAction _teleportAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

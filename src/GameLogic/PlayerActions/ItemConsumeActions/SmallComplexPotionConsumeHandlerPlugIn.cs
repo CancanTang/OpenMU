@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// Consume handler for small complex potions.
 /// </summary>
 [Guid("9424D511-0AF7-4FC2-BD11-24799368D651")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.SmallComplexPotionConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.SmallComplexPotionConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(SmallComplexPotionConsumeHandlerPlugIn), "Plugin which handles the small complex potion consumption.")]
 public class SmallComplexPotionConsumeHandlerPlugIn : ComplexPotionConsumeHandlerPlugIn
 {
     /// <summary>

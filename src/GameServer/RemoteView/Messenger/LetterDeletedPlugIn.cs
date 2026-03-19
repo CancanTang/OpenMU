@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="ILetterDeletedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LetterDeletedPlugIn_Name), Description = nameof(PlugInResources.LetterDeletedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("LetterDeletedPlugIn", "The default implementation of the ILetterDeletedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("3bcd507e-cb61-4b25-a208-4ee264f4793e")]
 public class LetterDeletedPlugIn : ILetterDeletedPlugIn
 {

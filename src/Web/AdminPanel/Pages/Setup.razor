@@ -1,8 +1,4 @@
 ﻿@page "/setup"
-@using MUnique.OpenMU.Web.AdminPanel.Properties
-
-<PageTitle>OpenMU: @Resources.Setup</PageTitle>
-<Breadcrumb IsFirstFromRoot="true" Caption="@Resources.Setup"/>
 
 @if (this.ShowInstall)
 {
@@ -10,32 +6,32 @@
 }
 else if (!this.SetupService.CanConnectToDatabase)
 {
-    <p>@Resources.DatabaseStatus: <span class="badge bg-danger">@Resources.CantConnectToTheDatabaseProbablyNotCreatedYet</span></p>
+    <p>Database status: <span class="badge bg-danger">Can't connect to the database. Probably not created yet.</span></p>
 
-    <button class="btn btn-primary" @onclick="this.OnInstallClick">@Resources.Create</button>
+    <button class="btn btn-primary" @onclick="this.OnInstallClick">Create</button>
 }
 else if (!this.SetupService.IsInstalled)
 {
-    <p>@Resources.DatabaseStatus: <span class="badge bg-warning text-dark">@Resources.NotCreated</span></p>
+    <p>Database status: <span class="badge bg-warning text-dark">Not created</span></p>
 
-    <button class="btn btn-primary" @onclick="this.OnInstallClick">@Resources.Create</button>
+    <button class="btn btn-primary" @onclick="this.OnInstallClick">Create</button>
 }
 else if (this.SetupService.IsUpdateRequired)
 {
-    <p>@Resources.DatabaseStatus: <span class="badge bg-warning text-dark">@Resources.UpdateRequired</span></p>
-    <button class="btn btn-primary" @onclick="this.OnUpdateClickAsync">@Resources.Update</button>
+    <p>Database status: <span class="badge bg-warning text-dark">Update required</span></p>
+    <button class="btn btn-primary" @onclick="this.OnUpdateClickAsync">Update</button>
 }
 else
 {
-    <p>@Resources.DatabaseStatus: <span class="badge bg-success">@Resources.UpToDate</span></p>
+    <p>Database status: <span class="badge bg-success">Up-to-date</span></p>
     @if (!this._isDataInitialized)
     {
-        <p>@Resources.InitializedGameVersion: <span class="badge bg-warning text-dark">@Resources.NoInitializedDataFound</span></p>
+        <p>Initialized game version: <span class="badge bg-warning text-dark">No initialized data found!</span></p>
     }
     else
     {
-        <p>@Resources.InitializedGameVersion: <span class="badge bg-success">@this._gameClientVersion</span></p>
+        <p>Initialized game version: <span class="badge bg-success">@this._gameClientVersion</span></p>
     }
 
-    <button class="btn bg-warning text-dark" @onclick="this.OnReInstallClickAsync">@Resources.ReInstall</button>
+    <button class="btn bg-warning text-dark" @onclick="this.OnReInstallClickAsync">Re-install</button>
 }

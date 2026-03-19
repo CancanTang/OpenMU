@@ -1,8 +1,4 @@
-﻿// <copyright file="DuelSpectatorListUpdatePlugIn.cs" company="MUnique">
-// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-// </copyright>
-
-namespace MUnique.OpenMU.GameServer.RemoteView.Duel;
+﻿namespace MUnique.OpenMU.GameServer.RemoteView.Duel;
 
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic;
@@ -15,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IDuelSpectatorListUpdatePlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DuelSpectatorListUpdatePlugIn_Name), Description = nameof(PlugInResources.DuelSpectatorListUpdatePlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(DuelSpectatorListUpdatePlugIn), "The default implementation of the IDuelSpectatorListUpdatePlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("1A8EC472-6924-4150-9B4C-4352AFF03AC0")]
 [MinimumClient(4, 0, ClientLanguage.Invariant)]
 public class DuelSpectatorListUpdatePlugIn : IDuelSpectatorListUpdatePlugIn

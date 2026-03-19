@@ -4,9 +4,10 @@
 
 namespace MUnique.OpenMU.GameLogic;
 
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence;
-using System.Threading;
+using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// Interface of a trader.
@@ -72,17 +73,4 @@ public interface ITrader : IWorldObserver
     /// Gets the game context of the trader.
     /// </summary>
     IGameContext GameContext { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether this instance is template player.
-    /// In this case, trading is not allowed.
-    /// </summary>
-    bool IsTemplatePlayer { get; }
-
-    /// <summary>
-    /// Saves the progress of the trader.
-    /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Success of the save operation.</returns>
-    ValueTask<bool> SaveProgressAsync(CancellationToken cancellationToken = default);
 }

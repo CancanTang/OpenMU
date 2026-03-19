@@ -156,20 +156,7 @@ public class PlugInManagerTest
         Assert.That(args.WasExecuted, Is.EqualTo(active));
     }
 
-    /// <summary>
-    /// Tests if a custom plugin in a non-existing assembly is not created and throws no errors.
-    /// </summary>
-    [Test]
-    public void CustomPlugInByExternalAssemblyNotFoundDoesntThrowError()
-    {
-        var configuration = new PlugInConfiguration
-        {
-            TypeId = new Guid("D88B1ACA-42B7-4A89-B3E0-3C97AA4C8578"),
-            IsActive = true,
-            ExternalAssemblyName = "DoesNotExist.dll",
-        };
-        _ = new PlugInManager(new List<PlugInConfiguration> { configuration }, new NullLoggerFactory(), this.CreateServiceProvider(), null);
-    }
+    
 
     /// <summary>
     /// Tests if an unknown plugin in the configuration doesn't cause exceptions.

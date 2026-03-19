@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IShowEffectPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ShowEffectPlugIn_Name), Description = nameof(PlugInResources.ShowEffectPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ShowEffectPlugIn", "The default implementation of the IShowEffectPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("EC433D54-F9CE-40FD-8848-F3515DDD43CF")]
 public class ShowEffectPlugIn : IShowEffectPlugIn
 {

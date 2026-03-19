@@ -16,12 +16,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for item move packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ItemMoveHandlerPlugIn_Name), Description = nameof(PlugInResources.ItemMoveHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ItemMoveHandlerPlugIn", "Handler for item move packets.")]
 [Guid("c499c596-7711-4971-bc83-7abd9e6b5553")]
 internal class ItemMoveHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly MoveItemAction _moveAction = new();
+    private readonly MoveItemAction _moveAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

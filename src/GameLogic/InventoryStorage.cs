@@ -8,7 +8,7 @@ using MUnique.OpenMU.DataModel;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.Views.World;
 using MUnique.OpenMU.PlugIns;
-using static MUnique.OpenMU.DataModel.InventoryConstants;
+using static OpenMU.DataModel.InventoryConstants;
 
 /// <summary>
 /// The storage of an inventory of a player, which also contains equippable slots. This class also manages the powerups which get created by equipped items.
@@ -25,14 +25,13 @@ public class InventoryStorage : Storage, IInventoryStorage
     /// <param name="player">The player.</param>
     /// <param name="context">The game context.</param>
     public InventoryStorage(Player player, IGameContext context)
-        : base(
-            GetInventorySize(0),
+        : base(GetInventorySize(0),
             EquippableSlotsCount,
             0,
             new ItemStorageAdapter(player.SelectedCharacter?.Inventory ?? throw Error.NotInitializedProperty(player, "SelectedCharacter.Inventory"), FirstEquippableItemSlotIndex, player.GetInventorySize()))
     {
         this._player = player;
-        this.EquippedItemsChanged += async eventArgs => await this.UpdateItemsOnChangeAsync(eventArgs.Item, eventArgs.IsEquipped).ConfigureAwait(false);
+        this.EquippedItemsChanged += async eventArgs => await this.UpdateItemsOnChangeAsync(eventArgs.Item).ConfigureAwait(false);
         this._gameContext = context;
 
         if (player.SelectedCharacter.InventoryExtensions > 0)
@@ -111,7 +110,7 @@ public class InventoryStorage : Storage, IInventoryStorage
             var isEquippedItem = this.IsWearingSlot(slot);
             if (isEquippedItem && this.EquippedItemsChanged is { } eventHandler)
             {
-                await eventHandler(new ItemEventArgs(convertedItem ?? item, true)).ConfigureAwait(false);
+                await eventHandler(new ItemEventArgs(convertedItem ?? item)).ConfigureAwait(false);
             }
         }
 
@@ -125,7 +124,7 @@ public class InventoryStorage : Storage, IInventoryStorage
         await base.RemoveItemAsync(item).ConfigureAwait(false);
         if (isEquippedItem && this.EquippedItemsChanged is { } eventHandler)
         {
-            await eventHandler(new ItemEventArgs(item, false)).ConfigureAwait(false);
+            await eventHandler(new ItemEventArgs(item)).ConfigureAwait(false);
         }
     }
 
@@ -134,12 +133,11 @@ public class InventoryStorage : Storage, IInventoryStorage
         return slot >= FirstEquippableItemSlotIndex && slot <= LastEquippableItemSlotIndex;
     }
 
-    private async ValueTask UpdateItemsOnChangeAsync(Item item, bool isEquipped)
+    private async ValueTask UpdateItemsOnChangeAsync(Item item)
     {
         this._player.OnAppearanceChanged();
-
         await this._player.ForEachWorldObserverAsync<IAppearanceChangedPlugIn>(
-            p => p.AppearanceChangedAsync(this._player, item, isEquipped),
+            p => p.AppearanceChangedAsync(this._player, item),
             false).ConfigureAwait(false); // in my tests it was not needed to send the appearance to the own players client.
 
         if (this._player.Attributes is null)
@@ -147,15 +145,16 @@ public class InventoryStorage : Storage, IInventoryStorage
             return;
         }
 
-        if (this._player.Attributes.ItemPowerUps.Remove(item, out var itemPowerUps))
+        if (this._player.Attributes.ItemPowerUps.TryGetValue(item, out var itemPowerUps))
         {
+            this._player.Attributes.ItemPowerUps.Remove(item);
             foreach (var powerUp in itemPowerUps)
             {
                 powerUp.Dispose();
             }
         }
 
-        if (item.Definition!.PossibleItemSetGroups.Count > 0)
+        if (item.ItemSetGroups != null && item.ItemSetGroups.Any())
         {
             this.UpdateSetPowerUps();
         }
@@ -167,9 +166,8 @@ public class InventoryStorage : Storage, IInventoryStorage
             this._player.Attributes.ItemPowerUps.Add(item, factory.GetPowerUps(item, this._player.Attributes).ToList());
 
             // reset player equipped ammunition amount
-            if (this.EquippedAmmunitionItem is { } ammoItem)
-            {
-                this._player.Attributes[Stats.AmmunitionAmount] = (float)ammoItem.Durability;
+            if (this.EquippedAmmunitionItem is { } ammoItem) {
+                this._player.Attributes[Stats.AmmunitionAmount] = (float) ammoItem.Durability;
             }
         }
     }
@@ -178,7 +176,7 @@ public class InventoryStorage : Storage, IInventoryStorage
     {
         if (this._player.Attributes is null)
         {
-            throw new InvalidOperationException("The player's AttributeSystem is not set yet.");
+            throw new InvalidOperationException("The players AttributeSystem is not set yet.");
         }
 
         foreach (var powerUp in this._player.Attributes.ItemPowerUps.Values.SelectMany(p => p).ToList())

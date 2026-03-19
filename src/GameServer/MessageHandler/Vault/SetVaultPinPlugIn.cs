@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for vault pin set packets (0x83, 0x01 identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.SetVaultPinPlugIn_Name), Description = nameof(PlugInResources.SetVaultPinPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Vault Lock - Set Pin", "Packet handler for vault pin set packets (0x83, 0x01 identifier).")]
 [Guid("A4C4CD69-6E28-4088-B533-CD63589D3CCA")]
 [BelongsToGroup(VaultLockGroupPlugIn.GroupKey)]
 internal class SetVaultPinPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly SetVaultPinAction _setVaultPinAction = new();
+    private readonly SetVaultPinAction _setVaultPinAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

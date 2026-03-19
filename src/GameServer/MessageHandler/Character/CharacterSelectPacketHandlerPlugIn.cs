@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for character select packets (0xF3, 0x03 identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CharacterSelectPacketHandlerPlugIn_Name), Description = nameof(PlugInResources.CharacterSelectPacketHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Character - Select", "Packet handler for character select packets (0xF3, 0x03 identifier).")]
 [Guid("82638A51-6C8E-46DF-9B4D-BF976D49A4A6")]
 [BelongsToGroup(CharacterGroupHandlerPlugIn.GroupKey)]
 internal class CharacterSelectPacketHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly SelectCharacterAction _characterSelectAction = new();
+    private readonly SelectCharacterAction _characterSelectAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

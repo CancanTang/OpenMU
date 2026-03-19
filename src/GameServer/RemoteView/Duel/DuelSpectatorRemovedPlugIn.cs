@@ -1,8 +1,4 @@
-﻿// <copyright file="DuelSpectatorRemovedPlugIn.cs" company="MUnique">
-// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-// </copyright>
-
-namespace MUnique.OpenMU.GameServer.RemoteView.Duel;
+﻿namespace MUnique.OpenMU.GameServer.RemoteView.Duel;
 
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic;
@@ -14,8 +10,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IDuelSpectatorRemovedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DuelSpectatorRemovedPlugIn_Name), Description = nameof(PlugInResources.DuelSpectatorRemovedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(DuelSpectatorRemovedPlugIn), "The default implementation of the IDuelSpectatorRemovedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("89DFA45D-FED2-4FAA-BDB0-683EB337629B")]
 [MinimumClient(4, 0, ClientLanguage.Invariant)]
 public class DuelSpectatorRemovedPlugIn : IDuelSpectatorRemovedPlugIn

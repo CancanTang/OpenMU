@@ -14,16 +14,6 @@ public abstract class BaseGridNetwork : INetwork
     /// </summary>
     private const byte UnreachableGridNodeValue = 0;
 
-    /// <summary>
-    /// The bit flag which marks a safezone node.
-    /// </summary>
-    private const byte SafezoneBitFlag = 0b1000_0000;
-
-    /// <summary>
-    /// The bit mask for the cost of a node.
-    /// </summary>
-    private const byte CostBitMask = 0b0111_1111;
-
     private static readonly sbyte[,] DirectionOffsets =
     {
         { 0, -1 },
@@ -48,11 +38,6 @@ public abstract class BaseGridNetwork : INetwork
     private byte[,]? _grid;
 
     /// <summary>
-    /// A flag, if safezone nodes should be included in the network.
-    /// </summary>
-    private bool _includeSafezone;
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="BaseGridNetwork"/> class.
     /// </summary>
     /// <param name="allowDiagonals">If set to <c>true</c>, diagonal traveling is allowed.</param>
@@ -62,12 +47,11 @@ public abstract class BaseGridNetwork : INetwork
     }
 
     /// <inheritdoc/>
-    public virtual bool Prepare(Point start, Point end, byte[,] grid, bool includeSafezone)
+    public virtual bool Prepare(Point start, Point end, byte[,] grid)
     {
         this._grid = grid;
         this._gridWidth = (ushort)(grid.GetUpperBound(0) + 1);
         this._gridHeight = (ushort)(grid.GetUpperBound(1) + 1);
-        this._includeSafezone = includeSafezone;
         return true;
     }
 
@@ -90,13 +74,7 @@ public abstract class BaseGridNetwork : INetwork
             newX = (byte)(node.X + DirectionOffsets[i, 0]);
             newY = (byte)(node.Y + DirectionOffsets[i, 1]);
 
-            if (!this._includeSafezone && (grid[newX, newY] & SafezoneBitFlag) > 0)
-            {
-                continue;
-            }
-
-            var costToNode = grid[newX, newY] & CostBitMask;
-            if (!this.IsWithinBounds(newX, newY) || costToNode == UnreachableGridNodeValue)
+            if (newX >= this._gridWidth || newY >= this._gridHeight || grid[newX, newY] == UnreachableGridNodeValue)
             {
                 continue;
             }
@@ -124,17 +102,4 @@ public abstract class BaseGridNetwork : INetwork
 
     /// <inheritdoc />
     public abstract Node? GetNodeAt(Point position);
-
-    /// <summary>
-    /// Determines whether the coordinates are within bounds of this network.
-    /// </summary>
-    /// <param name="x">The x.</param>
-    /// <param name="y">The y.</param>
-    /// <returns>
-    ///   <c>true</c> if the coordinates are within bounds of this network; otherwise, <c>false</c>.
-    /// </returns>
-    protected virtual bool IsWithinBounds(byte x, byte y)
-    {
-        return x < this._gridWidth && y < this._gridHeight;
-    }
 }

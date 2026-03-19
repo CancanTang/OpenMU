@@ -29,7 +29,12 @@ public static class PlugInConfigurationExtensions
             return default;
         }
 
-        return JsonSerializer.Deserialize<T>(configuration.CustomConfiguration, CreateSerializerOptions(referenceHandler, false));
+        var options = new JsonSerializerOptions
+        {
+            ReferenceHandler = referenceHandler,
+        };
+
+        return JsonSerializer.Deserialize<T>(configuration.CustomConfiguration, options);
     }
 
     /// <summary>
@@ -48,7 +53,12 @@ public static class PlugInConfigurationExtensions
             return default;
         }
 
-        return JsonSerializer.Deserialize(configuration.CustomConfiguration, configurationType, CreateSerializerOptions(referenceHandler, false));
+        var options = new JsonSerializerOptions
+        {
+            ReferenceHandler = referenceHandler,
+        };
+
+        return JsonSerializer.Deserialize(configuration.CustomConfiguration, configurationType, options);
     }
 
     /// <summary>
@@ -60,7 +70,7 @@ public static class PlugInConfigurationExtensions
     /// <param name="referenceHandler">The reference handler.</param>
     public static void SetConfiguration<T>(this PlugInConfiguration plugInConfiguration, T configuration, ReferenceHandler? referenceHandler)
     {
-        plugInConfiguration.CustomConfiguration = JsonSerializer.Serialize(configuration, CreateSerializerOptions(referenceHandler, true));
+        plugInConfiguration.CustomConfiguration = JsonSerializer.Serialize(configuration, new JsonSerializerOptions { WriteIndented = true, ReferenceHandler = referenceHandler });
     }
 
     /// <summary>
@@ -74,22 +84,6 @@ public static class PlugInConfigurationExtensions
         plugInConfiguration.CustomConfiguration = JsonSerializer.Serialize(
             configuration,
             configuration.GetType(),
-            CreateSerializerOptions(referenceHandler, true));
-    }
-
-    private static JsonSerializerOptions CreateSerializerOptions(ReferenceHandler? referenceHandler, bool writeIndented)
-    {
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = writeIndented,
-            ReferenceHandler = referenceHandler,
-        };
-
-        foreach (var converter in JsonConverterRegistry.Converters)
-        {
-            options.Converters.Add(converter);
-        }
-
-        return options;
+            new JsonSerializerOptions { WriteIndented = true, ReferenceHandler = referenceHandler });
     }
 }

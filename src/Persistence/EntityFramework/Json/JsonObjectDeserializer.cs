@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.Persistence.EntityFramework.Json;
 
-using MUnique.OpenMU.PlugIns;
 using System.Text.Json;
 
 /// <summary>
@@ -17,9 +16,6 @@ public class JsonObjectDeserializer : MUnique.OpenMU.Persistence.Json.JsonObject
     protected override void BeforeDeserialize(JsonSerializerOptions options)
     {
         base.BeforeDeserialize(options);
-        foreach (var converter in JsonConverterRegistry.Converters)
-        {
-            options.Converters.Add(converter);
-        }
+        options.Converters.Add(new BinaryAsHexJsonConverter());
     }
 }

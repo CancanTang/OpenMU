@@ -17,23 +17,30 @@ public class FenrirUpgradeCrafting : BaseItemCraftingHandler
 {
     private readonly ItemPriceCalculator _priceCalculator = new();
 
+    /// <inheritdoc />
+    protected override int GetPrice(byte successRate, IList<CraftingRequiredItemLink> requiredItems)
+    {
+        return 10_000_000;
+    }
+
     /// <inheritdoc/>
-    public override CraftingResult? TryGetRequiredItems(Player player, out IList<CraftingRequiredItemLink> items, out byte successRateByItems)
+    protected override CraftingResult? TryGetRequiredItems(Player player, out IList<CraftingRequiredItemLink> items, out byte successRateByItems)
     {
         successRateByItems = 0;
         items = new List<CraftingRequiredItemLink>(4);
         var inputItems = player.TemporaryStorage!.Items.ToList();
         var itemsLevelAndOption4 = inputItems
             .Where(item => item.Level >= 4
-                && item.ItemOptions.Any(o => o.ItemOption?.OptionType == ItemOptionTypes.Option))
+                           && item.ItemOptions.Any(o => o.ItemOption?.OptionType == ItemOptionTypes.Option))
             .ToList();
         var randomWeapons = itemsLevelAndOption4
             .Where(item => item.IsWearable()
-                && item.Definition!.BasePowerUpAttributes.Any(a => a.TargetAttribute == Stats.AttackSpeedByWeapon))
+                           && item.Definition!.BasePowerUpAttributes.Any(a =>
+                               a.TargetAttribute == Stats.MaximumPhysBaseDmgByWeapon))
             .ToList();
+
         var randomArmors = itemsLevelAndOption4
-            .Where(item => item.IsWearable()
-                && item.Definition!.BasePowerUpAttributes.Any(a => a.TargetAttribute == Stats.DefenseBase))
+            .Where(item => item.IsWearable() && item.Definition!.BasePowerUpAttributes.Any(a => a.TargetAttribute == Stats.DefenseBase))
             .ToList();
 
         if (randomArmors.Any() && randomWeapons.Any())
@@ -47,9 +54,9 @@ public class FenrirUpgradeCrafting : BaseItemCraftingHandler
             return CraftingResult.LackingMixItems;
         }
 
-        var hornOfFenrir = inputItems.FirstOrDefault(item => item.Definition?.Name.ValueInNeutralLanguage == "Horn of Fenrir");
-        var chaos = inputItems.FirstOrDefault(item => item.Definition?.Name.ValueInNeutralLanguage == "Jewel of Chaos");
-        var jewelsOfLife = inputItems.Where(item => item.Definition?.Name.ValueInNeutralLanguage == "Jewel of Life").Take(5).ToList();
+        var hornOfFenrir = inputItems.FirstOrDefault(item => item.Definition?.Name == "Horn of Fenrir");
+        var chaos = inputItems.FirstOrDefault(item => item.Definition?.Name == "Jewel of Chaos");
+        var jewelsOfLife = inputItems.Where(item => item.Definition?.Name == "Jewel of Life").Take(5).ToList();
 
         if (hornOfFenrir is null
             || chaos is null
@@ -75,28 +82,22 @@ public class FenrirUpgradeCrafting : BaseItemCraftingHandler
         if (randomWeapons.Any())
         {
             items.Add(new CraftingRequiredItemLink(randomWeapons, new TransientItemCraftingRequiredItem { MinimumAmount = 1, MaximumAmount = 1, Reference = 2 }));
-            successRateByItems = (byte)Math.Min(79, randomWeapons.Sum(this._priceCalculator.CalculateSellingPrice) * 100 / 1_000_000);
+            successRateByItems = (byte)Math.Min(79, randomWeapons.Sum(this._priceCalculator.CalculateBuyingPrice) * 100 / 1_000_000);
         }
-        else
+
+        if (randomArmors.Any())
         {
             items.Add(new CraftingRequiredItemLink(randomArmors, new TransientItemCraftingRequiredItem { MinimumAmount = 1, MaximumAmount = 1, Reference = 3 }));
-            successRateByItems = (byte)Math.Min(79, randomArmors.Sum(this._priceCalculator.CalculateSellingPrice) * 100 / 1_000_000);
+            successRateByItems = (byte)Math.Min(79, randomArmors.Sum(this._priceCalculator.CalculateBuyingPrice) * 100 / 1_000_000);
         }
 
         return null;
     }
 
-    /// <inheritdoc />
-    protected override int GetPrice(byte successRate, IList<CraftingRequiredItemLink> requiredItems)
-    {
-        return 10_000_000;
-    }
-
     /// <inheritdoc/>
-    protected override async ValueTask<List<Item>> CreateOrModifyResultItemsAsync(IList<CraftingRequiredItemLink> requiredItems, Player player, byte socketIndex, byte successRate)
+    protected override async ValueTask<List<Item>> CreateOrModifyResultItemsAsync(IList<CraftingRequiredItemLink> requiredItems, Player player, byte socketIndex)
     {
         var fenrir = requiredItems.First(i => i.ItemRequirement.Reference == 1).Items.First();
-        fenrir.Durability = 255;
 
         IEnumerable<IncreasableItemOption> fenrirOptions;
         if (requiredItems.Any(i => i.ItemRequirement.Reference == 2))

@@ -6,11 +6,10 @@ namespace MUnique.OpenMU.GameLogic;
 
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Attributes;
-using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
-using MUnique.OpenMU.GameLogic.Pet;
+using MUnique.OpenMU.GameLogic.Views.Character;
 using MUnique.OpenMU.GameLogic.Views.World;
 using MUnique.OpenMU.Pathfinding;
 
@@ -25,14 +24,6 @@ public static class AttackableExtensions
             { Stats.CurrentMana, Stats.ManaUsageReduction },
             { Stats.CurrentAbility, Stats.AbilityUsageReduction },
         };
-
-    extension(IAttackable attackable)
-    {
-        /// <summary>
-        /// Gets a value indicating whether this instance is a summoned monster.
-        /// </summary>
-        public bool IsSummonedMonster => attackable is Monster { SummonedBy: not null };
-    }
 
     /// <summary>
     /// Calculates the damage, using a skill.
@@ -52,235 +43,80 @@ public static class AttackableExtensions
             return new HitInfo(0, 0, DamageAttributes.Undefined);
         }
 
-        Player? attackerPlayer = attacker is AttackerSurrogate surrogate ? surrogate.Owner : (attacker is Player player ? player : null);
-        bool isPvp = attackerPlayer is not null && defender is Player;
-        bool isClassicPvp = isPvp && defender.Attributes[Stats.MaximumShield] == 0;
-        bool isClassicPvpDuel = isClassicPvp && attackerPlayer!.DuelRoom?.Opponent == defender;
-        var duelDmgDec = isClassicPvpDuel ? 0.6 : 1;
-
         DamageAttributes attributes = DamageAttributes.Undefined;
         bool isCriticalHit = Rand.NextRandomBool(attacker.Attributes[Stats.CriticalDamageChance]);
         bool isExcellentHit = Rand.NextRandomBool(attacker.Attributes[Stats.ExcellentDamageChance]);
         bool isIgnoringDefense = Rand.NextRandomBool(attacker.Attributes[Stats.DefenseIgnoreChance]);
+        attacker.GetBaseDmg(skill, out int baseMinDamage, out int baseMaxDamage);
+        int dmg;
+        if (isExcellentHit)
+        {
+            dmg = (int)(baseMaxDamage * 1.2);
+            attributes |= DamageAttributes.Excellent;
+        }
+        else if (isCriticalHit)
+        {
+            dmg = baseMaxDamage;
+            attributes |= DamageAttributes.Critical;
+        }
+        else if (baseMaxDamage <= baseMinDamage)
+        {
+            dmg = baseMinDamage;
+        }
+        else
+        {
+            dmg = Rand.NextInt(baseMinDamage, baseMaxDamage);
+        }
 
-        var defense = 0;
-        if (isIgnoringDefense)
+        if (!isIgnoringDefense)
+        {
+            var defenseAttribute = defender.GetDefenseAttribute(attacker);
+            var defense = (int)defender.Attributes[defenseAttribute];
+            dmg -= defense;
+        }
+        else
         {
             attributes |= DamageAttributes.IgnoreDefense;
         }
-        else
-        {
-            var defenseAttribute = defender.GetDefenseAttribute(attacker);
-            defense = (int)(defender.Attributes[defenseAttribute] * defender.Attributes[Stats.DefenseDecrement]);
-            if (defense < 0)
-            {
-                defense = 0;
-            }
-        }
 
-        attacker.GetBaseDmg(skill, out int baseMinDamage, out int baseMaxDamage, out DamageType damageType);
-        int dmg;
-        if (damageType == DamageType.Physical)
-        {
-            if (isExcellentHit)
-            {
-                dmg = (int)((baseMaxDamage * 1.2) + attacker.Attributes[Stats.ExcellentDamageBonus]);
-                dmg += (int)(attacker.Attributes[Stats.CriticalDamageBonus] + attacker.Attributes[Stats.BerserkerMaxPhysDmgBonus]);
-                attributes |= DamageAttributes.Excellent;
-            }
-            else if (isCriticalHit)
-            {
-                dmg = baseMaxDamage + (int)(attacker.Attributes[Stats.CriticalDamageBonus] + attacker.Attributes[Stats.BerserkerMaxPhysDmgBonus]);
-                attributes |= DamageAttributes.Critical;
-            }
-            else
-            {
-                baseMinDamage += (int)attacker.Attributes[Stats.BerserkerMinPhysDmgBonus];
-                baseMaxDamage += (int)attacker.Attributes[Stats.BerserkerMaxPhysDmgBonus];
+        dmg = Math.Max(dmg, 0);
 
-                if (baseMaxDamage <= baseMinDamage)
-                {
-                    dmg = baseMinDamage;
-                }
-                else
-                {
-                    dmg = Rand.NextInt(baseMinDamage, baseMaxDamage);
-                }
-            }
-
-            if (attacker.Attributes[Stats.HasDoubleWield] > 0)
-            {
-                // double wield => 110% dmg (55% + 55%)
-                dmg += dmg;
-            }
-
-            dmg = (int)((dmg * duelDmgDec) - defense);
-            dmg += GetMasterSkillTreePhysicalPassiveDamageBonus(attacker, true);
-
-            if (attacker.Attributes[Stats.IsTwoHandedWeaponEquipped] > 0)
-            {
-                dmg += (int)(dmg * attacker.Attributes[Stats.TwoHandedWeaponDamageIncrease]);
-            }
-
-            if (attacker is AttackerSurrogate)
-            {
-                dmg += (int)attacker.Attributes[Stats.RavenBonusDamage];
-
-                if ((attributes & (DamageAttributes.Excellent | DamageAttributes.Critical)) == DamageAttributes.Undefined)
-                {
-                    dmg = (int)(dmg / 1.5);
-                }
-            }
-        }
-        else
-        {
-            // Wizardry, Curse, and Fenrir
-            if (isExcellentHit)
-            {
-                dmg = (int)((baseMaxDamage * duelDmgDec) - defense);
-                dmg = (int)((dmg * 1.2) + attacker.Attributes[Stats.ExcellentDamageBonus]);
-                attributes |= DamageAttributes.Excellent;
-            }
-            else if (isCriticalHit)
-            {
-                dmg = (int)((baseMaxDamage * duelDmgDec) - defense);
-                dmg += (int)attacker.Attributes[Stats.CriticalDamageBonus];
-                attributes |= DamageAttributes.Critical;
-            }
-            else
-            {
-                if (baseMaxDamage <= baseMinDamage)
-                {
-                    dmg = baseMinDamage;
-                }
-                else
-                {
-                    dmg = Rand.NextInt(baseMinDamage, baseMaxDamage);
-                }
-
-                dmg = (int)((dmg * duelDmgDec) - defense);
-            }
-        }
-
-        dmg += (int)attacker.Attributes[Stats.GreaterDamageBonus];
-
-        /*Scroll of Wrath/Wizardry and Remedy of Love go here (but for now they don't exist)*/
-
-        if (damageType == DamageType.Wizardry || damageType == DamageType.Curse)
-        {
-            dmg += (int)(dmg * attacker.Attributes[Stats.BerserkerProficiencyMultiplier]);
-        }
-        else if (damageType == DamageType.Physical)
-        {
-            dmg -= (int)(dmg * attacker.Attributes[Stats.WeaknessPhysDmgDecrement]);
-            dmg += GetMasterSkillTreePhysicalPassiveDamageBonus(attacker, false);
-        }
-        else
-        {
-            // nothing to do
-        }
-
-        /*Scroll of Battle (crit dmg)/Strengthener (exc dmg) go here (but for now they don't exist)*/
-
-        if (!isPvp && defender.Overrates(attacker))
-        {
-            dmg = (int)(dmg * 0.3);
-        }
-
-        dmg -= (int)(dmg * defender.Attributes[Stats.ArmorDamageDecrease]);
-
-        var attackerLevel = attacker is Player ? attacker.Attributes[Stats.TotalLevel] :
-            attacker is AttackerSurrogate ? attackerPlayer!.Attributes![Stats.Level] : attacker.Attributes[Stats.Level];
-        var minLevelDmg = Math.Max(1, (int)attackerLevel / 10);
-        if (dmg < minLevelDmg)
-        {
-            dmg = minLevelDmg;
-        }
-
+        dmg = (int)(dmg * defender.Attributes[Stats.DamageReceiveDecrement]);
         dmg = (int)(dmg * attacker.Attributes[Stats.AttackDamageIncrease]);
-        if (dmg > 1)
-        {
-            dmg = (int)(dmg * defender.Attributes[Stats.DamageReceiveDecrement]);
-        }
 
         if (skill != null)
         {
-            var multiplier = attacker.Attributes[Stats.SkillMultiplier];
-
-            if (skill.EnsureSkillAttributes(attacker.Attributes) is { } skillAttributes)
-            {
-                dmg += (int)skillAttributes[Stats.SkillFinalDamageBonus];
-
-                var skillMultiplier = skillAttributes[Stats.SkillFinalMultiplier];
-                if (skillMultiplier > 0)
-                {
-                    multiplier = skillMultiplier;
-
-                    if (skill.Skill!.Number == 265 && !isPvp) // DragonSlasher
-                    {
-                        multiplier *= 3;
-                    }
-                }
-            }
-
-            dmg = (int)(dmg * multiplier * damageFactor);
+            dmg += (int)attacker.Attributes[Stats.SkillDamageBonus];
+            dmg = (int)(dmg * attacker.Attributes[Stats.SkillMultiplier]);
         }
-        else if (attacker.Attributes[Stats.IsDinorantEquipped] > 0)
+
+        if (attacker.Attributes[Stats.IsTwoHandedWeaponEquipped] > 0)
         {
-            dmg = (int)(dmg * 1.3);
-        }
-        else
-        {
-            // Nothing to do
+            dmg = (int)(dmg * attacker.Attributes[Stats.TwoHandedWeaponDamageIncrease]);
         }
 
-        float manaToll = 0;
-        var soulBarrierManaToll = defender.Attributes[Stats.SoulBarrierManaTollPerHit];
-        if (soulBarrierManaToll > 0 && defender.Attributes[Stats.CurrentMana] > soulBarrierManaToll)
-        {
-            manaToll = soulBarrierManaToll;
-            dmg -= (int)(dmg * defender.Attributes[Stats.SoulBarrierReceiveDecrement]);
-        }
-
-        dmg += (int)attacker.Attributes[Stats.FinalDamageBonus];
-
-        if (isPvp && attacker is not AttackerSurrogate)
+        if (attacker is Player && defender is Player)
         {
             dmg += (int)attacker.Attributes[Stats.FinalDamageIncreasePvp];
-            dmg += GetMasterSkillTreeMasteryPvpDamageBonus(attacker);
-
-            if (attackerPlayer!.CurrentMiniGame?.Definition.Type == MiniGameType.ChaosCastle)
-            {
-                // In Chaos Castle PvP damage is halved (except for raven)
-                dmg /= 2;
-            }
         }
 
-        if (dmg > 0)
+        if (isCombo)
         {
-            // To-do: Ice arrow magic effect duration is reduced by 1s for every successful hit (dmg >0)
-            //        Sleep magic effect is canceled for successful hit (dmg > 0)
-            if (isCombo)
-            {
-                dmg += (int)attacker.Attributes[Stats.ComboBonus];
-                attributes |= DamageAttributes.Combo;
-            }
-
-            bool isDoubleDamage = Rand.NextRandomBool(attacker.Attributes[Stats.DoubleDamageChance]);
-            if (isDoubleDamage)
-            {
-                dmg *= 2;
-                attributes |= DamageAttributes.Double;
-            }
-
-            if (isClassicPvp && attackerPlayer!.CurrentMiniGame?.Definition.Type == MiniGameType.ChaosCastle)
-            {
-                // Further halve damage in Chaos Castle for classic PvP
-                dmg /= 2;
-            }
+            dmg += (int)attacker.Attributes[Stats.ComboBonus];
+            attributes |= DamageAttributes.Combo;
         }
 
-        return defender.GetHitInfo((uint)dmg, attributes, attacker, (uint)manaToll);
+        bool isDoubleDamage = Rand.NextRandomBool(attacker.Attributes[Stats.DoubleDamageChance]);
+        if (isDoubleDamage)
+        {
+            dmg *= 2;
+            attributes |= DamageAttributes.Double;
+        }
+
+        dmg = (int)(dmg * damageFactor);
+
+        var minimumDamage = attacker.Attributes[Stats.Level] / 10;
+        return defender.GetHitInfo(Math.Max((uint)dmg, (uint)minimumDamage), attributes, attacker);
     }
 
     /// <summary>
@@ -290,14 +126,13 @@ public static class AttackableExtensions
     /// <param name="damage">The damage.</param>
     /// <param name="attributes">The attributes.</param>
     /// <param name="attacker">The attacker.</param>
-    /// <param name="manaToll">The mana reduction amount that is traded for damage (e.g. from Soul Barrier).</param>
     /// <returns>The calculated hit info.</returns>
-    public static HitInfo GetHitInfo(this IAttackable defender, uint damage, DamageAttributes attributes, IAttacker attacker, uint manaToll = 0)
+    public static HitInfo GetHitInfo(this IAttackable defender, uint damage, DamageAttributes attributes, IAttacker attacker)
     {
         var shieldBypass = Rand.NextRandomBool(attacker.Attributes[Stats.ShieldBypassChance]);
         if (shieldBypass || defender.Attributes[Stats.CurrentShield] < 1)
         {
-            return new HitInfo(damage, 0, attributes, manaToll);
+            return new HitInfo(damage, 0, attributes);
         }
 
         var shieldRatio = 0.90;
@@ -305,14 +140,14 @@ public static class AttackableExtensions
         shieldRatio += defender.Attributes[Stats.ShieldRateIncrease];
         shieldRatio = Math.Max(0, shieldRatio);
         shieldRatio = Math.Min(1, shieldRatio);
-        return new HitInfo((uint)(damage * (1 - shieldRatio)), (uint)(damage * shieldRatio), attributes, manaToll);
+        return new HitInfo((uint)(damage * (1 - shieldRatio)), (uint)(damage * shieldRatio), attributes);
     }
 
     /// <summary>
-    /// Applies the magic effect of the player's skill to the target.
+    /// Applies the magic effect of the players skill to the target.
     /// </summary>
     /// <param name="target">The target.</param>
-    /// <param name="attacker">The attacker.</param>
+    /// <param name="player">The player.</param>
     /// <param name="skillEntry">The skill entry.</param>
     public static async ValueTask ApplyMagicEffectAsync(this IAttackable target, IAttacker attacker, SkillEntry skillEntry)
     {
@@ -321,19 +156,11 @@ public static class AttackableExtensions
             player.CreateMagicEffectPowerUp(skillEntry);
         }
 
-        float chance = target is Player ? skillEntry.PowerUpChancePvp!.Value : skillEntry.PowerUpChance!.Value;
-        if (!Rand.NextRandomBool(Convert.ToDouble(chance)))
-        {
-            return;
-        }
-
-        var duration = target is Player ? skillEntry.PowerUpDurationPvp! : skillEntry.PowerUpDuration!;
-        var powerUps = target is Player ? skillEntry.PowerUpsPvp! : skillEntry.PowerUps!;
-        await target.ApplyMagicEffectAsync(attacker, skillEntry.Skill!.MagicEffectDef!, duration, powerUps).ConfigureAwait(false);
+        await target.ApplyMagicEffectAsync(attacker, skillEntry.Skill!.MagicEffectDef!, skillEntry.PowerUpDuration!, skillEntry.PowerUps!).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Applies the regeneration of the player's skill to the target.
+    /// Applies the regeneration of the players skill to the target.
     /// </summary>
     /// <param name="target">The target.</param>
     /// <param name="player">The player.</param>
@@ -347,6 +174,8 @@ public static class AttackableExtensions
 
         skillEntry.ThrowNotInitializedProperty(skillEntry.Skill is null, nameof(skillEntry.Skill));
 
+        var isHealthUpdated = false;
+        var isManaUpdated = false;
         var skill = skillEntry.Skill;
         foreach (var powerUpDefinition in skill.MagicEffectDef?.PowerUpDefinitions ?? Enumerable.Empty<PowerUpDefinition>())
         {
@@ -358,6 +187,8 @@ public static class AttackableExtensions
                 target.Attributes[regeneration.CurrentAttribute] = Math.Min(
                     target.Attributes[regeneration.CurrentAttribute] + value,
                     target.Attributes[regeneration.MaximumAttribute]);
+                isHealthUpdated |= regeneration.CurrentAttribute == Stats.CurrentHealth || regeneration.CurrentAttribute == Stats.CurrentShield;
+                isManaUpdated |= regeneration.CurrentAttribute == Stats.CurrentMana || regeneration.CurrentAttribute == Stats.CurrentAbility;
             }
             else
             {
@@ -365,10 +196,23 @@ public static class AttackableExtensions
                     $"Regeneration skill {skill.Name} is configured to regenerate a non-regeneration-able target attribute {powerUpDefinition.TargetAttribute}.");
             }
         }
+
+        if (target is IWorldObserver observer)
+        {
+            if (isHealthUpdated)
+            {
+                await observer.InvokeViewPlugInAsync<IUpdateCurrentHealthPlugIn>(p => p.UpdateCurrentHealthAsync()).ConfigureAwait(false);
+            }
+
+            if (isManaUpdated)
+            {
+                await observer.InvokeViewPlugInAsync<IUpdateCurrentManaPlugIn>(p => p.UpdateCurrentManaAsync()).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>
-    /// Applies the elemental effects of a player's skill to the target.
+    /// Applies the elemental effects of a players skill to the target.
     /// </summary>
     /// <param name="target">The target.</param>
     /// <param name="attacker">The attacker.</param>
@@ -376,11 +220,6 @@ public static class AttackableExtensions
     /// <returns>The success of the appliance.</returns>
     public static async ValueTask<bool> TryApplyElementalEffectsAsync(this IAttackable target, IAttacker attacker, SkillEntry skillEntry)
     {
-        if (!target.IsAlive)
-        {
-            return false;
-        }
-
         skillEntry.ThrowNotInitializedProperty(skillEntry.Skill is null, nameof(skillEntry.Skill));
         var modifier = skillEntry.Skill.ElementalModifierTarget;
         if (modifier is null)
@@ -389,7 +228,7 @@ public static class AttackableExtensions
         }
 
         var resistance = target.Attributes[modifier];
-        if (resistance >= 255 || !Rand.NextRandomBool(1 / (resistance + 1)))
+        if (resistance >= 1.0f || !Rand.NextRandomBool(1.0f - resistance))
         {
             return false;
         }
@@ -414,7 +253,7 @@ public static class AttackableExtensions
     }
 
     /// <summary>
-    /// Applies the elemental effects of a monster's skill to the target.
+    /// Applies the elemental effects of a players skill to the target.
     /// </summary>
     /// <param name="target">The target.</param>
     /// <param name="attacker">The attacker.</param>
@@ -427,11 +266,6 @@ public static class AttackableExtensions
     /// </returns>
     public static async ValueTask<bool> TryApplyElementalEffectsAsync(this IAttackable target, IAttacker attacker, Skill skill, IElement? powerUp, IElement? duration, AttributeDefinition? targetAttribute)
     {
-        if (!target.IsAlive)
-        {
-            return false;
-        }
-
         var modifier = skill.ElementalModifierTarget;
         if (modifier is null)
         {
@@ -439,7 +273,7 @@ public static class AttackableExtensions
         }
 
         var resistance = target.Attributes[modifier];
-        if (resistance >= 255 || !Rand.NextRandomBool(1 / (resistance + 1)))
+        if (resistance >= 1.0f || !Rand.NextRandomBool(1.0f - resistance))
         {
             return false;
         }
@@ -475,7 +309,7 @@ public static class AttackableExtensions
     {
         if (!hitInfo.Attributes.HasFlag(DamageAttributes.Reflected) && attacker.Attributes[Stats.AmmunitionConsumptionRate] > 0.0)
         {
-            // Every hit needs ammo, missed or not
+            // Every hit needs ammo. Failed hits don't need ammo.
             if (attacker.Attributes[Stats.AmmunitionAmount] < attacker.Attributes[Stats.AmmunitionConsumptionRate])
             {
                 return;
@@ -541,9 +375,8 @@ public static class AttackableExtensions
     /// </summary>
     /// <param name="attacker">The attacker.</param>
     /// <param name="attributeRequirement">The attribute requirement, e.g. of a skill.</param>
-    /// <param name="addExtraManaCost">If set to <c>true</c>, <see cref="Stats.SkillExtraManaCost"/> applies.</param>
     /// <returns>The required value.</returns>
-    public static int GetRequiredValue(this IAttacker attacker, AttributeRequirement attributeRequirement, bool addExtraManaCost = false)
+    public static int GetRequiredValue(this IAttacker attacker, AttributeRequirement attributeRequirement)
     {
         var modifier = 1.0f;
         if (ReductionModifiers.TryGetValue(
@@ -553,13 +386,7 @@ public static class AttackableExtensions
             modifier -= attacker.Attributes[reductionAttribute];
         }
 
-        var extraCost = 0;
-        if (addExtraManaCost && attributeRequirement.Attribute == Stats.CurrentMana)
-        {
-            extraCost = (int)attacker.Attributes[Stats.SkillExtraManaCost];
-        }
-
-        return (int)((attributeRequirement.MinimumValue + extraCost) * modifier);
+        return (int)(attributeRequirement.MinimumValue * modifier);
     }
 
     /// <summary>
@@ -570,12 +397,6 @@ public static class AttackableExtensions
     /// <returns>The calculated base experience.</returns>
     public static double CalculateBaseExperience(this IAttackable killedObject, float killerLevel)
     {
-        if (killedObject.IsSummonedMonster)
-        {
-            // Summoned monsters should not yield experience.
-            return 0;
-        }
-
         var targetLevel = killedObject.Attributes[Stats.Level];
         var tempExperience = (targetLevel + 25) * targetLevel / 3.0;
 
@@ -624,7 +445,7 @@ public static class AttackableExtensions
 
     private static AttributeDefinition GetDefenseAttribute(this IAttackable defender, IAttacker attacker)
     {
-        if (attacker is Player or AttackerSurrogate && defender is Player)
+        if (attacker is Player && defender is Player)
         {
             return Stats.DefensePvp;
         }
@@ -632,188 +453,90 @@ public static class AttackableExtensions
         return Stats.DefensePvm;
     }
 
-    private static bool Overrates(this IAttackable defender, IAttacker attacker)
+    private static int GetDamage(this SkillEntry skill)
     {
-        return defender.Attributes[Stats.DefenseRatePvm] > attacker.Attributes[Stats.AttackRatePvm];
-    }
+        skill.ThrowNotInitializedProperty(skill.Skill is null, nameof(skill.Skill));
 
-    private static int GetDamage(this SkillEntry skillEntry, IAttacker attacker)
-    {
-        skillEntry.ThrowNotInitializedProperty(skillEntry.Skill is null, nameof(skillEntry.Skill));
-        var skill = skillEntry.Skill;
-
-        var result = skill.AttackDamage;
-        if (attacker is Player { } player && skill.MasterDefinition is { } masterDefinition)
+        var result = skill.Skill.AttackDamage;
+        if (skill.Skill.MasterDefinition != null)
         {
-            if (masterDefinition.TargetAttribute is null)
-            {
-                result += (int)skillEntry.CalculateValue();
-            }
-
-            foreach (var masterSkill in skill.GetBaseSkills(true))
-            {
-                if (masterSkill.MasterDefinition!.TargetAttribute is null
-                    && player.SkillList!.GetSkill((ushort)masterSkill.Number) is { } masterSkillEntry)
-                {
-                    result += (int)masterSkillEntry.CalculateValue();
-                }
-            }
+            result += (int)skill.CalculateValue();
         }
 
         return result;
     }
 
-    private static IAttributeSystem? EnsureSkillAttributes(this SkillEntry skillEntry, IAttributeSystem attackerSystem)
-    {
-        var skillAttributes = skillEntry.Attributes;
-        if (skillAttributes is not null)
-        {
-            return skillAttributes;
-        }
-
-        if (skillEntry.Skill is not { } skill)
-        {
-            return skillAttributes;
-        }
-
-        var baseSkills = new List<Skill> { skill };
-        baseSkills.AddRange(skillEntry.Skill.GetBaseSkills());
-
-        if (baseSkills.All(s => s.AttributeRelationships.Count == 0))
-        {
-            return skillAttributes;
-        }
-
-        skillAttributes = skillEntry.Attributes = new AttributeSystem([], [], []);
-        var levelElement = new SimpleElement(skillEntry.Level, AggregateType.AddRaw);
-        skillEntry.PropertyChanged += (_, _) => levelElement.Value = skillEntry.Level;
-        skillAttributes.AddElement(levelElement, Stats.SkillLevel);
-        foreach (var relationship in baseSkills.SelectMany(s => s.AttributeRelationships))
-        {
-            skillAttributes.AddAttributeRelationship(relationship, attackerSystem, relationship.AggregateType);
-        }
-
-        return skillAttributes;
-    }
-
-    private static void GetSkillDmg(this IAttacker attacker, SkillEntry? skillEntry, out int skillMinimumDamage, out int skillMaximumDamage, out DamageType damageType, out bool isSummonerSkill)
-    {
-        skillMinimumDamage = 0;
-        skillMaximumDamage = 0;
-        var attackerStats = attacker.Attributes;
-        damageType = DamageType.Physical;
-        isSummonerSkill = attackerStats[Stats.MinimumCurseBaseDmg] > 0 && damageType != DamageType.Fenrir;
-
-        if (skillEntry?.Skill is not { } skill)
-        {
-            return;
-        }
-
-        damageType = skill.DamageType;
-        var skillDamage = skillEntry.GetDamage(attacker);
-        skillMinimumDamage += skillDamage;
-        skillMaximumDamage += skillDamage + (skillDamage / 2);
-
-        if (skill.ElementalModifierTarget is { } resistance
-            && Stats.ElementResistanceToDamageBonus.TryGetValue(resistance, out var dmgBonus))
-        {
-            skillMinimumDamage += (int)attackerStats[dmgBonus];
-            skillMaximumDamage += (int)attackerStats[dmgBonus];
-        }
-
-        if (!isSummonerSkill && damageType != DamageType.Fenrir)
-        {
-            // For Summoner, the skill bonus gets added last
-            skillMinimumDamage += (int)attackerStats[Stats.SkillDamageBonus];
-            skillMaximumDamage += (int)attackerStats[Stats.SkillDamageBonus];
-        }
-
-        if (skillEntry.EnsureSkillAttributes(attackerStats) is { } skillAttributes)
-        {
-            skillMinimumDamage += (int)skillAttributes[Stats.SkillBaseDamageBonus];
-            skillMaximumDamage += (int)skillAttributes[Stats.SkillBaseDamageBonus];
-
-            var multiplier = skillAttributes[Stats.SkillBaseMultiplier];
-            if (multiplier > 0)
-            {
-                skillMinimumDamage = (int)(skillMinimumDamage * multiplier);
-                skillMaximumDamage = (int)(skillMaximumDamage * multiplier);
-            }
-        }
-
-        if (damageType == DamageType.Physical && attackerStats[Stats.HasDoubleWield] > 0)
-        {
-            // Because double wield dmg will be doubled later, we only take half of the skill dmg here (the skill is from a single weapon)
-            skillMinimumDamage /= 2;
-            skillMaximumDamage /= 2;
-        }
-
-        if (isSummonerSkill)
-        {
-            skillMinimumDamage += (int)(attackerStats[Stats.WizardryAndCurseBaseDmgBonus] + attackerStats[Stats.MinWizardryAndCurseDmgBonus]);
-            skillMaximumDamage += (int)attackerStats[Stats.WizardryAndCurseBaseDmgBonus];
-
-            if (damageType == DamageType.Wizardry)
-            {
-                skillMinimumDamage += (int)attackerStats[Stats.BerserkerMinWizDmgBonus];
-                skillMaximumDamage += (int)attackerStats[Stats.BerserkerMaxWizDmgBonus];
-            }
-            else
-            {
-                skillMinimumDamage += (int)attackerStats[Stats.BerserkerMinCurseDmgBonus];
-                skillMaximumDamage += (int)attackerStats[Stats.BerserkerMaxCurseDmgBonus];
-            }
-        }
-    }
-
     /// <summary>
-    /// Returns the base damage of the attacker, using a specific skill.
+    /// Returns the base damage if the attacker, using a specific skill.
     /// </summary>
     /// <param name="attacker">The attacker.</param>
     /// <param name="skill">Skill which is used.</param>
     /// <param name="minimumBaseDamage">Minimum base damage.</param>
     /// <param name="maximumBaseDamage">Maximum base damage.</param>
-    /// <param name="damageType">The damage type.</param>
-    private static void GetBaseDmg(this IAttacker attacker, SkillEntry? skill, out int minimumBaseDamage, out int maximumBaseDamage, out DamageType damageType)
+    private static void GetBaseDmg(this IAttacker attacker, SkillEntry? skill, out int minimumBaseDamage, out int maximumBaseDamage)
     {
-        minimumBaseDamage = 0;
-        maximumBaseDamage = 0;
         var attackerStats = attacker.Attributes;
-        GetSkillDmg(attacker, skill, out var skillMinimumDamage, out var skillMaximumDamage, out damageType, out var isSummonerSkill);
+        minimumBaseDamage = (int)(attackerStats[Stats.BaseDamageBonus] + attackerStats[Stats.BaseMinDamageBonus]);
+        maximumBaseDamage = (int)(attackerStats[Stats.BaseDamageBonus] + attackerStats[Stats.BaseMaxDamageBonus]);
+
+        DamageType damageType = DamageType.Physical;
+        if (skill?.Skill != null)
+        {
+            damageType = skill.Skill.DamageType;
+
+            var skillDamage = skill.GetDamage();
+            minimumBaseDamage += skillDamage;
+            maximumBaseDamage += skillDamage + (skillDamage / 2);
+
+            if (skill.Skill.SkillType == SkillType.Nova)
+            {
+                var novaDamage = (int)(attackerStats[Stats.NovaBonusDamage] + attackerStats[Stats.NovaStageDamage]);
+
+                minimumBaseDamage += novaDamage;
+                maximumBaseDamage += novaDamage;
+            }
+        }
 
         switch (damageType)
         {
-            // Common damage types
             case DamageType.Wizardry:
-                minimumBaseDamage = (int)((attackerStats[Stats.MinimumWizBaseDmg] + skillMinimumDamage) * attackerStats[Stats.WizardryAttackDamageIncrease]);
-                maximumBaseDamage = (int)((attackerStats[Stats.MaximumWizBaseDmg] + skillMaximumDamage) * attackerStats[Stats.WizardryAttackDamageIncrease]);
+                minimumBaseDamage = (int)((minimumBaseDamage + attackerStats[Stats.MinimumWizBaseDmg]) * attackerStats[Stats.WizardryAttackDamageIncrease]);
+                maximumBaseDamage = (int)((maximumBaseDamage + attackerStats[Stats.MaximumWizBaseDmg]) * attackerStats[Stats.WizardryAttackDamageIncrease]);
+
                 break;
             case DamageType.Curse:
-                minimumBaseDamage = (int)((attackerStats[Stats.MinimumCurseBaseDmg] + skillMinimumDamage) * attackerStats[Stats.CurseAttackDamageIncrease]);
-                maximumBaseDamage = (int)((attackerStats[Stats.MaximumCurseBaseDmg] + skillMaximumDamage) * attackerStats[Stats.CurseAttackDamageIncrease]);
+                minimumBaseDamage += (int)((minimumBaseDamage + attackerStats[Stats.MinimumCurseBaseDmg]) * attackerStats[Stats.CurseAttackDamageIncrease]);
+                maximumBaseDamage += (int)((maximumBaseDamage + attackerStats[Stats.MaximumCurseBaseDmg]) * attackerStats[Stats.CurseAttackDamageIncrease]);
+
                 break;
             case DamageType.Physical:
-                minimumBaseDamage = (int)attackerStats[Stats.MinimumPhysBaseDmg] + skillMinimumDamage;
-                maximumBaseDamage = (int)attackerStats[Stats.MaximumPhysBaseDmg] + skillMaximumDamage;
+                minimumBaseDamage += (int)attackerStats[Stats.MinimumPhysBaseDmg];
+                maximumBaseDamage += (int)attackerStats[Stats.MaximumPhysBaseDmg];
+                break;
+            case DamageType.All:
+                minimumBaseDamage += Math.Max(
+                    Math.Max(
+                        (int)(attackerStats[Stats.MinimumWizBaseDmg] * attackerStats[Stats.WizardryAttackDamageIncrease]),
+                        (int)(attackerStats[Stats.MinimumCurseBaseDmg] * attackerStats[Stats.CurseAttackDamageIncrease])),
+                    (int)attackerStats[Stats.MinimumPhysBaseDmg]);
+                maximumBaseDamage += Math.Max(
+                    Math.Max(
+                        (int)(attackerStats[Stats.MaximumWizBaseDmg] * attackerStats[Stats.WizardryAttackDamageIncrease]),
+                        (int)(attackerStats[Stats.MaximumCurseBaseDmg] * attackerStats[Stats.CurseAttackDamageIncrease])),
+                    (int)attackerStats[Stats.MaximumPhysBaseDmg]);
                 break;
             case DamageType.Fenrir:
-                minimumBaseDamage = (int)attackerStats[Stats.FenrirBaseDmg] + skillMinimumDamage;
-                maximumBaseDamage = (int)attackerStats[Stats.FenrirBaseDmg] + skillMaximumDamage;
+                minimumBaseDamage += (int)attackerStats[Stats.FenrirBaseDmg];
+                maximumBaseDamage += (int)attackerStats[Stats.FenrirBaseDmg];
                 break;
             default:
                 // the skill has some other damage type defined which is not applicable to this calculation
                 break;
         }
-
-        if (isSummonerSkill)
-        {
-            minimumBaseDamage += (int)attackerStats[Stats.SkillDamageBonus];
-            maximumBaseDamage += (int)attackerStats[Stats.SkillDamageBonus];
-        }
     }
 
     /// <summary>
-    /// Applies the magic effect of the attacker's skill to the target.
+    /// Applies the magic effect of the attackers skill to the target.
     /// </summary>
     /// <param name="target">The target.</param>
     /// <param name="attacker">The attacker.</param>
@@ -822,32 +545,15 @@ public static class AttackableExtensions
     /// <param name="powerUps">The power ups of the effect.</param>
     private static async ValueTask ApplyMagicEffectAsync(this IAttackable target, IAttacker attacker, MagicEffectDefinition magicEffectDefinition, IElement duration, params (AttributeDefinition Target, IElement Boost)[] powerUps)
     {
-        float finalDuration = duration.Value;
-
-        if (magicEffectDefinition.DurationDependsOnTargetLevel)
-        {
-            var divisor = target is Player ? magicEffectDefinition.PlayerTargetLevelDivisor : magicEffectDefinition.MonsterTargetLevelDivisor;
-            if (divisor != 0)
-            {
-                finalDuration -= target.Attributes[Stats.Level] / divisor;
-            }
-        }
-
-        TimeSpan durationSpan = TimeSpan.FromSeconds(finalDuration);
-        if (durationSpan < TimeSpan.FromSeconds(1))
-        {
-            return;
-        }
-
         var isPoisonEffect = magicEffectDefinition.PowerUpDefinitions.Any(e => e.TargetAttribute == Stats.IsPoisoned);
         var magicEffect = isPoisonEffect
-            ? new PoisonMagicEffect(powerUps[0].Boost, magicEffectDefinition, durationSpan, attacker, target)
-            : new MagicEffect(durationSpan, magicEffectDefinition, powerUps.Select(p => new MagicEffect.ElementWithTarget(p.Boost, p.Target)).ToArray());
+            ? new PoisonMagicEffect(powerUps[0].Boost, magicEffectDefinition, TimeSpan.FromSeconds(duration.Value), attacker, target)
+            : new MagicEffect(TimeSpan.FromSeconds(duration.Value), magicEffectDefinition, powerUps.Select(p => new MagicEffect.ElementWithTarget(p.Boost, p.Target)).ToArray());
 
         await target.MagicEffectList.AddEffectAsync(magicEffect).ConfigureAwait(false);
         if (target is ISupportWalk walkSupporter
             && walkSupporter.IsWalking
-            && magicEffectDefinition.PowerUpDefinitions.Any(e => e.TargetAttribute == Stats.IsFrozen || e.TargetAttribute == Stats.IsStunned || e.TargetAttribute == Stats.IsAsleep))
+            && magicEffectDefinition.PowerUpDefinitions.Any(e => e.TargetAttribute == Stats.IsFrozen || e.TargetAttribute == Stats.IsStunned))
         {
             await walkSupporter.StopWalkingAsync().ConfigureAwait(false);
 
@@ -857,91 +563,6 @@ public static class AttackableExtensions
             {
                 await observable.ForEachWorldObserverAsync<IObjectMovedPlugIn>(p => p.ObjectMovedAsync(walkSupporter, MoveType.Instant), true).ConfigureAwait(false);
             }
-        }
-    }
-
-    private static int GetMasterSkillTreePhysicalPassiveDamageBonus(IAttacker attacker, bool preBuffsStage)
-    {
-        if (preBuffsStage)
-        {
-            if (attacker.Attributes[Stats.IsBowEquipped] > 0)
-            {
-                return (int)attacker.Attributes[Stats.BowStrBonusDamage];
-            }
-            else if (attacker.Attributes[Stats.IsCrossBowEquipped] > 0)
-            {
-                return (int)attacker.Attributes[Stats.CrossBowStrBonusDamage];
-            }
-            else if (attacker.Attributes[Stats.IsTwoHandedSwordEquipped] > 0)
-            {
-                return (int)attacker.Attributes[Stats.TwoHandedSwordStrBonusDamage];
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else
-        {
-            int bonusDamage = 0;
-
-            if (attacker.Attributes[Stats.IsSpearEquipped] > 0) // always two-handed
-            {
-                bonusDamage = (int)attacker.Attributes[Stats.SpearBonusDamage];
-            }
-            else if (attacker.Attributes[Stats.IsScepterEquipped] > 0) // impossible to double wield
-            {
-                bonusDamage = (int)attacker.Attributes[Stats.ScepterStrBonusDamage];
-            }
-            else if (attacker.Attributes[Stats.IsGloveWeaponEquipped] > 0) // impossible to double wield
-            {
-                bonusDamage = (int)attacker.Attributes[Stats.GloveWeaponBonusDamage];
-            }
-            else
-            {
-                if (attacker.Attributes[Stats.IsOneHandedSwordEquipped] > 0)
-                {
-                    bonusDamage = (int)attacker.Attributes[Stats.OneHandedSwordBonusDamage];
-                }
-
-                if (attacker.Attributes[Stats.IsMaceEquipped] > 0)
-                {
-                    // In case of a double wield with different possible bonuses, take the average
-                    bonusDamage = (int)(bonusDamage == 0
-                        ? attacker.Attributes[Stats.MaceBonusDamage]
-                        : (bonusDamage + attacker.Attributes[Stats.MaceBonusDamage]) / 2);
-                }
-            }
-
-            return bonusDamage + (int)attacker.Attributes[Stats.MasterSkillPhysBonusDmg];
-        }
-    }
-
-    private static int GetMasterSkillTreeMasteryPvpDamageBonus(IAttacker attacker)
-    {
-        if (attacker.Attributes[Stats.IsTwoHandedSwordEquipped] > 0)
-        {
-            return (int)attacker.Attributes[Stats.TwoHandedSwordMasteryBonusDamage];
-        }
-        else if (attacker.Attributes[Stats.IsTwoHandedStaffEquipped] > 0)
-        {
-            return (int)attacker.Attributes[Stats.TwoHandedStaffMasteryBonusDamage];
-        }
-        else if (attacker.Attributes[Stats.IsCrossBowEquipped] > 0)
-        {
-            return (int)attacker.Attributes[Stats.CrossBowMasteryBonusDamage];
-        }
-        else if (attacker.Attributes[Stats.IsStickEquipped] > 0)
-        {
-            return (int)attacker.Attributes[Stats.StickMasteryBonusDamage];
-        }
-        else if (attacker.Attributes[Stats.IsScepterEquipped] > 0)
-        {
-            return (int)attacker.Attributes[Stats.ScepterMasteryBonusDamage];
-        }
-        else
-        {
-            return 0;
         }
     }
 }

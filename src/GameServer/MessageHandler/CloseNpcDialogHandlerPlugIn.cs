@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for close npc packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CloseNpcDialogHandlerPlugIn_Name), Description = nameof(PlugInResources.CloseNpcDialogHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("CloseNpcDialogHandlerPlugIn", "Packet handler for close npc packets.")]
 [Guid("ecb920e3-eca7-4f40-a453-bdee67e1dabf")]
 internal class CloseNpcDialogHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly CloseNpcDialogAction _closeNpcDialogAction = new();
+    private readonly CloseNpcDialogAction _closeNpcDialogAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

@@ -7,7 +7,6 @@
 namespace MUnique.OpenMU.GameLogic.PlayerActions.ItemConsumeActions;
 
 using MUnique.OpenMU.DataModel.Configuration.Items;
-using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Persistence;
 
 /// <summary>
@@ -35,14 +34,19 @@ public abstract class ItemUpgradeConsumeHandlerPlugIn : ItemModifyConsumeHandler
         None,
 
         /// <summary>
-        /// Sets the option to the base level.
+        /// Sets the option to level one.
         /// </summary>
-        SetOptionToBaseLevel,
+        SetOptionToLevelOne,
 
         /// <summary>
-        /// Removes the option.
+        /// Decreases the option by one level.
         /// </summary>
-        RemoveOption,
+        DecreaseOptionByOne,
+
+        /// <summary>
+        /// Decreases the option by one level, or removes the option if the level would reach 0.
+        /// </summary>
+        DecreaseOptionByOneOrRemove,
     }
 
     /// <summary>
@@ -66,22 +70,7 @@ public abstract class ItemUpgradeConsumeHandlerPlugIn : ItemModifyConsumeHandler
         return this.TryAddItemOption(item, persistenceContext);
     }
 
-    /// <summary>
-    /// Checks if an item can have the configured option.
-    /// </summary>
-    /// <param name="item">The item.</param>
-    /// <returns>Flag indicating whether the item can have the option.</returns>
-    protected virtual bool ItemCanHaveOption(Item item)
-    {
-        return item.Definition?.PossibleItemOptions.Any(o => o.PossibleOptions.Any(p => p.OptionType == this.Configuration.OptionType)) ?? false;
-    }
-
-    /// <summary>
-    /// Tries to upgrade the item option.
-    /// </summary>
-    /// <param name="item">The item to upgrade.</param>
-    /// <returns>Flag indicating whether the item option was upgraded.</returns>
-    protected virtual bool TryUpgradeItemOption(Item item)
+    private bool TryUpgradeItemOption(Item item)
     {
         if (!this.Configuration.IncreasesOption)
         {
@@ -90,7 +79,7 @@ public abstract class ItemUpgradeConsumeHandlerPlugIn : ItemModifyConsumeHandler
 
         var itemOption = item.ItemOptions.First(o => o.ItemOption?.OptionType == this.Configuration.OptionType);
         var increasableOption = itemOption.ItemOption;
-        var higherOptionPossible = increasableOption?.LevelDependentOptions.Any(o => o.Level > itemOption.Level && o.RequiredItemLevel <= item.Level) ?? false;
+        var higherOptionPossible = increasableOption?.LevelDependentOptions.Any(o => o.Level > itemOption.Level) ?? false;
         if (!higherOptionPossible)
         {
             return false;
@@ -112,11 +101,19 @@ public abstract class ItemUpgradeConsumeHandlerPlugIn : ItemModifyConsumeHandler
     {
         switch (this.Configuration.FailResult)
         {
-            case ItemFailResult.RemoveOption:
-                item.ItemOptions.Remove(itemOption);
+            case ItemFailResult.DecreaseOptionByOne:
+                itemOption.Level = Math.Max(itemOption.Level - 1, 1);
                 break;
-            case ItemFailResult.SetOptionToBaseLevel:
-                itemOption.Level = itemOption.ItemOption?.LevelDependentOptions.Min(ldo => ldo.Level) ?? itemOption.Level;
+            case ItemFailResult.DecreaseOptionByOneOrRemove:
+                itemOption.Level -= 1;
+                if (itemOption.Level == 0)
+                {
+                    item.ItemOptions.Remove(itemOption);
+                }
+
+                break;
+            case ItemFailResult.SetOptionToLevelOne:
+                itemOption.Level = 1;
                 break;
             default:
                 // do nothing
@@ -143,33 +140,10 @@ public abstract class ItemUpgradeConsumeHandlerPlugIn : ItemModifyConsumeHandler
             }
 
             var optionLink = persistenceContext.CreateNew<ItemOptionLink>();
-            if (this.Configuration.OptionType == ItemOptionTypes.HarmonyOption)
-            {
-                // Str and agi reduction options are not always applicable, and so should be removed from the pool
-                if (!item.Definition.Requirements.Any(r => r.Attribute == Stats.TotalStrengthRequirementValue)
-                    && possibleOptions.FirstOrDefault(po => po.LevelDependentOptions
-                        .Any(ldo => ldo.PowerUpDefinition?.TargetAttribute == Stats.RequiredStrengthReduction)) is { } strReductOpt)
-                {
-                    possibleOptions.Remove(strReductOpt);
-                }
-
-                if (!item.Definition.Requirements.Any(r => r.Attribute == Stats.TotalAgilityRequirementValue)
-                    && possibleOptions.FirstOrDefault(po => po.LevelDependentOptions
-                        .Any(ldo => ldo.PowerUpDefinition?.TargetAttribute == Stats.RequiredAgilityReduction)) is { } agiReductOpt)
-                {
-                    possibleOptions.Remove(agiReductOpt);
-                }
-
-                optionLink.ItemOption = possibleOptions.SelectWeightedRandom(possibleOptions.Select(po => (int)po.Weight));
-                optionLink.Level = optionLink.ItemOption?.LevelDependentOptions.Select(ldo => ldo.Level).Min() ?? 0;
-            }
-            else
-            {
-                // ItemOptionTypes.Option
-                optionLink.ItemOption = possibleOptions.SelectRandom();
-                optionLink.Level = 1;
-            }
-
+            optionLink.ItemOption = possibleOptions.SelectRandom()!;
+            optionLink.Level = optionLink.ItemOption.LevelDependentOptions.Any()
+                ? optionLink.ItemOption.LevelDependentOptions.Min(l => l.Level)
+                : 1;
             item.ItemOptions.Add(optionLink);
         }
 
@@ -179,6 +153,11 @@ public abstract class ItemUpgradeConsumeHandlerPlugIn : ItemModifyConsumeHandler
     private bool ItemHasOptionAlready(Item item)
     {
         return item.ItemOptions.Any(o => o.ItemOption?.OptionType == this.Configuration.OptionType);
+    }
+
+    private bool ItemCanHaveOption(Item item)
+    {
+        return item.Definition?.PossibleItemOptions.Any(o => o.PossibleOptions.Any(p => p.OptionType == this.Configuration.OptionType)) ?? false;
     }
 
     /// <summary>

@@ -80,7 +80,7 @@ public class TalkNpcAction
                     }
                     else
                     {
-                        await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.TalkingNotImplementedFormat), npcStats.Number, npcStats.Designation).ConfigureAwait(false);
+                        await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync($"Talking to this NPC ({npcStats.Number}, {npcStats.Designation}) is not implemented yet.", MessageType.BlueNormal)).ConfigureAwait(false);
                     }
 
                     await player.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false);
@@ -129,18 +129,9 @@ public class TalkNpcAction
                 });
 
                 break;
-            case NpcWindow.ChaosMachine:
-            case NpcWindow.RemoveJohOption:
-                await player.InvokeViewPlugInAsync<IOpenNpcWindowPlugIn>(p => p.OpenNpcWindowAsync(npcStats.NpcWindow)).ConfigureAwait(false);
-                break;
             default:
                 await player.InvokeViewPlugInAsync<IOpenNpcWindowPlugIn>(p => p.OpenNpcWindowAsync(npcStats.NpcWindow)).ConfigureAwait(false);
                 break;
-        }
-
-        if (npcStats.ItemCraftings.Any())
-        {
-            player.BackupInventory = new BackupItemStorage(player.Inventory!.ItemStorage);
         }
     }
 

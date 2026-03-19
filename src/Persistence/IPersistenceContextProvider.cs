@@ -74,13 +74,13 @@ public interface IPersistenceContextProvider
     IGuildServerContext CreateNewGuildContext();
 
     /// <summary>
-    /// Creates the new context which can be used to load and edit an object of <paramref name="editType"/>.
+    /// Creates the new context which can be used to load and edit an object of <typeparamref name="T" />.
     /// </summary>
-    /// <param name="editType">The type of object which should be handled.</param>
-    /// <param name="useCache">Flag, if the cache should be used.</param>
+    /// <typeparam name="T">The type of object which should be handled.</typeparam>
+    /// <param name="useCache"></param>
     /// <param name="gameConfiguration">The game configuration.</param>
     /// <returns>
-    /// A new context which can be used to load and edit an object of <paramref name="editType"/>.
+    /// A new context which can be used to load and edit an object of <typeparamref name="T" />.
     /// </returns>
-    IContext CreateNewTypedContext(Type editType, bool useCache, GameConfiguration? gameConfiguration = null);
+    IContext CreateNewTypedContext<T>(bool useCache, GameConfiguration? gameConfiguration = null);
 }

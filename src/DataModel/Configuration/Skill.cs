@@ -55,7 +55,7 @@ public enum DamageType
 public enum SkillType
 {
     /// <summary>
-    /// The skill hits its target directly.
+    /// The skill hit its target directly.
     /// </summary>
     DirectHit = 0,
 
@@ -65,7 +65,7 @@ public enum SkillType
     CastleSiegeSpecial = 1,
 
     /// <summary>
-    /// Same as <see cref="DirectHit"/> but only appliable during castle siege event.
+    /// Same as <see cref="DirectHit"/> but only applyable during castle siege event.
     /// </summary>
     CastleSiegeSkill = 2,
 
@@ -83,6 +83,11 @@ public enum SkillType
     /// Area skill, which only hits the explicit target. No declaration of hits by the client.
     /// </summary>
     AreaSkillExplicitTarget = 5,
+
+    /// <summary>
+    /// The nova skill which hits all targets in range and applies some bonus damage.
+    /// </summary>
+    Nova = 6,
 
     /// <summary>
     /// The buff skill type. Applies magic effects on players.
@@ -199,12 +204,7 @@ public partial class Skill
     /// <summary>
     /// Gets or sets the name.
     /// </summary>
-    public LocalizedString Name { get; set; }
-
-    /// <summary>
-    /// Gets or sets the attack damage. Only relevant for attack skills.
-    /// </summary>
-    public int AttackDamage { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the requirements to execute the skill.
@@ -217,18 +217,6 @@ public partial class Skill
     /// </summary>
     [MemberOfAggregate]
     public virtual ICollection<AttributeRequirement> ConsumeRequirements { get; protected set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the attribute relationships which are applied during damage calculations.
-    /// </summary>
-    /// <remarks>
-    /// For example, horse skill:
-    ///  * new AttributeRelationship(Stats.SkillBaseDamageBonus, 1.0f / 10, Stats.TotalStrength)
-    ///  * new AttributeRelationship(Stats.SkillBaseDamageBonus, 1.0f / 5, Stats.TotalLeadership)
-    ///  * new AttributeRelationship(Stats.SkillBaseDamageBonus, 10, Stats.HorseLevel).
-    /// </remarks>
-    [MemberOfAggregate]
-    public virtual ICollection<AttributeRelationship> AttributeRelationships { get; protected set; } = null!;
 
     /// <summary>
     /// Gets or sets the maximum range between executor of the skill and the target object.
@@ -282,7 +270,7 @@ public partial class Skill
     /// <summary>
     /// Gets or sets the elemental modifier target attribute.
     /// If this is set, hitting the target (successfully or not) may apply additional effects.
-    /// A value of <c>255</c> means, the target is immune to effects of this element.
+    /// A value of <c>1.0f</c> means, the target is immune to effects of this element.
     /// </summary>
     public virtual AttributeDefinition? ElementalModifierTarget { get; set; }
 
@@ -303,19 +291,7 @@ public partial class Skill
     public virtual MasterSkillDefinition? MasterDefinition { get; set; }
 
     /// <summary>
-    /// Gets or sets the area skill settings.
+    /// Gets or sets the attack damage. Only relevant for attack skills.
     /// </summary>
-    [MemberOfAggregate]
-    public virtual AreaSkillSettings? AreaSkillSettings { get; set; }
-
-    /// <summary>
-    /// Gets or sets the number of hits per attack.
-    /// </summary>
-    public short NumberOfHitsPerAttack { get; set; }
-
-    /// <inheritdoc />
-    public override string? ToString()
-    {
-        return this.Name.ToString();
-    }
+    public int AttackDamage { get; set; }
 }

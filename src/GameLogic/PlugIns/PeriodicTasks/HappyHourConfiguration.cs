@@ -26,6 +26,5 @@ public class HappyHourConfiguration : PeriodicTaskConfiguration
     /// <summary>
     /// Gets or sets the experience multiplier.
     /// </summary>
-    [Display(ResourceType = typeof(PlugInResources), Name = nameof(PlugInResources.HappyHourConfiguration_ExperienceMultiplier_Name))]
     public float ExperienceMultiplier { get; set; } = 1.5f;
 }

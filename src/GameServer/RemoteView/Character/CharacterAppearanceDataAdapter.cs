@@ -34,9 +34,6 @@ internal class CharacterAppearanceDataAdapter : IAppearanceData
     /// <inheritdoc/>
     public CharacterClass? CharacterClass => this._character?.CharacterClass;
 
-    /// <inheritdoc/>
-    public CharacterStatus CharacterStatus => this._character?.CharacterStatus ?? default;
-
     /// <inheritdoc />
     public CharacterPose Pose => CharacterPose.Standing;
 
@@ -51,7 +48,6 @@ internal class CharacterAppearanceDataAdapter : IAppearanceData
             if (this._character.Inventory != null)
             {
                 return this._character.Inventory.Items
-                    .Where(item => item.Definition is not null)
                     .Where(item => item.ItemSlot <= InventoryConstants.LastEquippableItemSlotIndex)
                     .Select(item => item.GetAppearance());
             }

@@ -9,7 +9,6 @@ using Microsoft.JSInterop;
 
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.Web.AdminPanel.Components;
-using MUnique.OpenMU.Web.AdminPanel.Properties;
 using MUnique.OpenMU.Web.AdminPanel.Services;
 
 /// <summary>
@@ -60,7 +59,7 @@ public partial class Setup
 
     private async Task OnReInstallClickAsync()
     {
-        if (await this.JsRuntime.InvokeAsync<bool>("confirm", Resources.ReinstallConfirmation).ConfigureAwait(false))
+        if (await this.JsRuntime.InvokeAsync<bool>("confirm", "Are you sure? All the current data is getting deleted and freshly installed.").ConfigureAwait(false))
         {
             this.ShowInstall = true;
         }

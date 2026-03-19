@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler which opens the player shop (3F 02).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PlayerShopOpenPacketHandlerPlugIn_Name), Description = nameof(PlugInResources.PlayerShopOpenPacketHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Player Shop - Open", "Packet handler which opens the player shop (3F 02).")]
 [Guid("6997E1D3-B722-40AE-8F71-A65BB4377529")]
 [BelongsToGroup(StoreHandlerGroupPlugIn.GroupKey)]
 internal class PlayerShopOpenPacketHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly OpenStoreAction _openStoreAction = new();
+    private readonly OpenStoreAction _openStoreAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => true;

@@ -1,3 +1,5 @@
+version: '3.4'
+
 volumes:
   dbdata:
   prometheus-data:
@@ -86,7 +88,7 @@ services:
     ports:
       - "50006"
 
-  rabbit:
+  pubsub:
     image: rabbitmq:3-management-alpine
     container_name: pubsub_rabbitmq
     restart: always
@@ -104,7 +106,7 @@ services:
     ports:
       - "5432"
     volumes:
-      - dbdata:/var/lib/postgresql
+      - dbdata:/var/lib/postgresql/data
 
   zipkin:
     image: openzipkin/zipkin
@@ -124,7 +126,7 @@ services:
       APPID: connectServer
       ASPNETCORE_URLS: http://+:8080
     depends_on:
-      - rabbit
+      - pubsub
       - zipkin
       - database
 
@@ -283,7 +285,6 @@ services:
       - "8080"
       - "50001"
       - "55901:55901"
-      - "55902:55902"
       - "9464" # Prometheus
     environment:
       GS_ID: 0
@@ -294,7 +295,7 @@ services:
       - connectServer-dapr
       - loginServer-dapr
       - friendServer-dapr
-      - rabbit
+      - pubsub
       - zipkin
       - database
       - loki
@@ -321,8 +322,7 @@ services:
     ports:
       - "8080"
       - "50001"
-      - "55903:55903"
-      - "55904:55904"
+      - "55902:55902"
       - "9464" # Prometheus
     environment:
       GS_ID: 1
@@ -333,7 +333,7 @@ services:
       - connectServer-dapr
       - loginServer-dapr
       - friendServer-dapr
-      - rabbit
+      - pubsub
       - zipkin
       - database
       - loki

@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for character packets (0xF3 identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.NpcActionGroupHandlerPlugIn_Name), Description = nameof(PlugInResources.NpcActionGroupHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("NPC Action Packet Handler", "Packet handler for npc action packets (0xD0 identifier).")]
 [Guid("519874CB-734D-4061-9FCF-96B833250436")]
 internal class NpcActionGroupHandlerPlugIn : GroupPacketHandlerPlugIn
 {

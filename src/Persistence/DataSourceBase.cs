@@ -6,15 +6,13 @@ namespace MUnique.OpenMU.Persistence;
 
 using System.Collections;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 
 /// <summary>
-/// Provider which provides the latest <see cref="Owner" /> and it's containing
+/// Provider which provides the latest <see cref="Owner"/> and it's containing
 /// child objects.
 /// </summary>
-/// <typeparam name="TOwner">The type of the owner.</typeparam>
 /// <remarks>
 /// Approach: One context for each composition root type. When child data is going to be edited, the whole type
 /// should be loaded.
@@ -39,8 +37,8 @@ public abstract class DataSourceBase<TOwner> : IDataSource<TOwner>
     /// <param name="persistenceContextProvider">The persistence context provider.</param>
     protected DataSourceBase(ILogger<DataSourceBase<TOwner>> logger, IPersistenceContextProvider persistenceContextProvider)
     {
-        this._logger = logger;
-        this.ContextProvider = persistenceContextProvider;
+        _logger = logger;
+        ContextProvider = persistenceContextProvider;
     }
 
     /// <summary>
@@ -60,25 +58,25 @@ public abstract class DataSourceBase<TOwner> : IDataSource<TOwner>
     /// <inheritdoc />
     public bool IsSupporting(Type type)
     {
-        return this.TypeToEnumerables.ContainsKey(type);
+        return TypeToEnumerables.ContainsKey(type);
     }
 
     /// <inheritdoc />
-    async ValueTask<TOwner> IDataSource<TOwner>.GetOwnerAsync(Guid ownerId, CancellationToken cancellationToken)
+    async ValueTask<TOwner> IDataSource<TOwner>.GetOwnerAsync(Guid ownerId)
     {
-        return (TOwner)(await this.GetOwnerAsync(ownerId, cancellationToken).ConfigureAwait(false));
+        return (TOwner)(await this.GetOwnerAsync(ownerId).ConfigureAwait(false));
     }
 
     /// <inheritdoc />
-    public async ValueTask<IContext> GetContextAsync(CancellationToken cancellationToken)
+    public async ValueTask<IContext> GetContextAsync()
     {
-        return this._context ??= await this.CreateNewContextAsync().ConfigureAwait(false);
+        return this._context ??= await this.CreateNewContextAsync();
     }
 
     /// <inheritdoc />
-    public async ValueTask<object> GetOwnerAsync(Guid ownerId = default, CancellationToken cancellationToken = default)
+    public async ValueTask<object> GetOwnerAsync(Guid ownerId = default)
     {
-        using var l = await this._loadLock.LockAsync(cancellationToken).ConfigureAwait(false);
+        using var l = await _loadLock.LockAsync().ConfigureAwait(false);
 
         if (this._owner is { } owner
             && (ownerId == Guid.Empty || owner.GetId() == ownerId))
@@ -86,7 +84,7 @@ public abstract class DataSourceBase<TOwner> : IDataSource<TOwner>
             return owner;
         }
 
-        var context = await this.GetContextAsync(cancellationToken).ConfigureAwait(false);
+        var context = await this.GetContextAsync().ConfigureAwait(false);
         this._logger.LogDebug("Loading owner ...");
         var stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -96,7 +94,7 @@ public abstract class DataSourceBase<TOwner> : IDataSource<TOwner>
         }
         else
         {
-            owner = (await context.GetByIdAsync<TOwner>(ownerId, cancellationToken).ConfigureAwait(false));
+            owner = (await context.GetByIdAsync<TOwner>(ownerId).ConfigureAwait(false));
         }
 
         this._owner = owner;
@@ -116,13 +114,6 @@ public abstract class DataSourceBase<TOwner> : IDataSource<TOwner>
             // if we would be able to clone objects, that wouldn't be necessary.
             this.Reset();
         }
-    }
-
-    /// <inheritdoc />
-    public async ValueTask ForceDiscardChangesAsync()
-    {
-        using var l = await _loadLock.LockAsync().ConfigureAwait(false);
-        this.Reset();
     }
 
     /// <inheritdoc />

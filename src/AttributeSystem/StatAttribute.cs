@@ -38,15 +38,7 @@ public class StatAttribute : BaseStatAttribute
     /// </value>
     public new virtual float Value
     {
-        get
-        {
-            if (this.Definition.MaximumValue.HasValue)
-            {
-                return Math.Min(this.Definition.MaximumValue.Value, this._statValue);
-            }
-
-            return this._statValue;
-        }
+        get => this._statValue;
 
         set
         {

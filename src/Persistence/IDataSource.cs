@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.Persistence;
 
 using System.Collections;
-using System.Threading;
 
 /// <summary>
 /// Interface for a class which allows an easier access to the whole object tree
@@ -16,11 +15,8 @@ public interface IDataSource : IDisposable
     /// <summary>
     /// Gets the context which was used to load the owner.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// The context.
-    /// </returns>
-    ValueTask<IContext> GetContextAsync(CancellationToken cancellationToken = default);
+    /// <returns>The context.</returns>
+    ValueTask<IContext> GetContextAsync();
 
     /// <summary>
     /// Gets the owner with the specified id.
@@ -28,11 +24,8 @@ public interface IDataSource : IDisposable
     /// </summary>
     /// <param name="ownerId">The unique identifier of the owner. If none is provided,
     /// it loads the first instance of the owner type.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// The owner.
-    /// </returns>
-    ValueTask<object> GetOwnerAsync(Guid ownerId = default, CancellationToken cancellationToken = default);
+    /// <returns>The owner.</returns>
+    ValueTask<object> GetOwnerAsync(Guid ownerId = default);
 
     /// <summary>
     /// Determines whether the specified type is supported by this instance.
@@ -48,13 +41,6 @@ public interface IDataSource : IDisposable
     /// Discards the changes of the context, if there are any.
     /// </summary>
     ValueTask DiscardChangesAsync();
-
-    /// <summary>
-    /// Discards the changes and resets the cache unconditionally, regardless of whether
-    /// the context has tracked changes. Use this after an external context (e.g. a typed
-    /// context) has persisted structural changes such as creating or deleting objects.
-    /// </summary>
-    ValueTask ForceDiscardChangesAsync();
 
     /// <summary>
     /// Gets all objects of the given type.
@@ -90,9 +76,6 @@ public interface IDataSource<TOwner> : IDataSource
     /// Loads it from the current context, if not loaded yet.
     /// </summary>
     /// <param name="ownerId">The unique identifier.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// The owner.
-    /// </returns>
-    new ValueTask<TOwner> GetOwnerAsync(Guid ownerId = default, CancellationToken cancellationToken = default);
+    /// <returns>The owner.</returns>
+    new ValueTask<TOwner> GetOwnerAsync(Guid ownerId = default);
 }

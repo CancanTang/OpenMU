@@ -7,35 +7,25 @@ namespace MUnique.OpenMU.ClientLauncher;
 /// <summary>
 /// The available mu online client screen resolutions.
 /// </summary>
-public class ClientResolution
+public enum ClientResolution
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ClientResolution"/> class.
+    /// The undefined resolution. Will fall back to 800x600 pixels.
     /// </summary>
-    public ClientResolution()
-    {
-        this.Index = 0;
-        this.Caption = string.Empty;
-    }
+    Undefined = 0,
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ClientResolution"/> class.
+    /// The resolution of 800x600 pixels.
     /// </summary>
-    /// <param name="index">The index.</param>
-    /// <param name="caption">The caption.</param>
-    public ClientResolution(int index, string caption)
-    {
-        this.Index = index;
-        this.Caption = caption;
-    }
+    Resolution800X600 = 1,
 
     /// <summary>
-    /// Gets the index.
+    /// The resolution of 1024x768 pixels.
     /// </summary>
-    public int Index { get; init; }
+    Resolution1024X768 = 2,
 
     /// <summary>
-    /// Gets the caption.
+    /// The resolution of 1280x1024 pixels.
     /// </summary>
-    public string Caption { get; init; }
+    Resolution1280X1024 = 3,
 }

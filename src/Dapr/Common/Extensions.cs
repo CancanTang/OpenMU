@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.Dapr.Common;
 
 using System.Threading;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -66,18 +65,7 @@ public static class Extensions
     {
         return services
             .AddSingleton(plugInConfigurations)
-            .AddSingleton<PlugInManager>()
-            .AddTransient<ReferenceHandler, ByDataSourceReferenceHandler>(provider =>
-            {
-                var persistenceContextProvider = provider.GetService<IPersistenceContextProvider>();
-                var dataSource = new GameConfigurationDataSource(
-                    provider.GetService<ILogger<GameConfigurationDataSource>>()!,
-                    persistenceContextProvider!);
-                var configId = persistenceContextProvider!.CreateNewConfigurationContext().GetDefaultGameConfigurationIdAsync(default).AsTask().WaitAndUnwrapException();
-                dataSource.GetOwnerAsync(configId!.Value).AsTask().WaitAndUnwrapException();
-                var referenceHandler = new ByDataSourceReferenceHandler(dataSource);
-                return referenceHandler;
-            });
+            .AddSingleton<PlugInManager>();
     }
 
     /// <summary>
@@ -101,7 +89,7 @@ public static class Extensions
                 return;
             }
 
-            var configs = await persistenceContextProvider.CreateNewTypedContext(typeof(PlugInConfiguration), false).GetAsync<PlugInConfiguration>().ConfigureAwait(false);
+            var configs = await persistenceContextProvider.CreateNewTypedContext<PlugInConfiguration>(false).GetAsync<PlugInConfiguration>().ConfigureAwait(false);
             plugInConfigurations.AddRange(configs);
         }
         catch
@@ -265,6 +253,23 @@ public static class Extensions
             app.UseSwaggerUI();
         }
 
+        if (addBlazor)
+        {
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+            }
+
+            app.UseStaticFiles();
+            app.UseRouting();
+            app.MapBlazorHub();
+            app.MapFallbackToPage("/_Host");
+        }
+
         app.UseCloudEvents();
         app.MapControllers();
         app.MapSubscribeHandler();
@@ -310,7 +315,7 @@ public static class Extensions
             try
             {
                 var persistenceContextProvider = serviceProvider.GetService<IPersistenceContextProvider>() ?? throw new Exception($"{nameof(IPersistenceContextProvider)} not registered.");
-                using var context = persistenceContextProvider.CreateNewTypedContext(typeof(SystemConfiguration), false);
+                using var context = persistenceContextProvider.CreateNewTypedContext<SystemConfiguration>(false);
 
                 // TODO: this may lead to a deadlock?
                 var configuration = context.GetAsync<SystemConfiguration>().AsTask().WaitAndUnwrapException().FirstOrDefault();
@@ -321,7 +326,7 @@ public static class Extensions
             }
             catch (Exception ex)
             {
-                serviceProvider.GetService<ILogger<IIpAddressResolver>>()?.LogError(ex, "Unexpected error when trying to load the system configuration during ip resolver creation.");
+                serviceProvider.GetService<ILogger<IIpAddressResolver>>()?.LogError(ex, "Unexpected error when trying to load the system configuration during ip resolver creation: {ex}", ex);
             }
 
             return IpAddressResolverFactory.CreateIpResolver(args, settings, serviceProvider.GetService<ILoggerFactory>()!);

@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using System.ComponentModel;
-
 namespace MUnique.OpenMU.DataModel.Entities;
 
 using MUnique.OpenMU.AttributeSystem;
@@ -73,12 +71,6 @@ public class Account
     public string EMail { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the iso code (ISO 639-2/3) of the preferred language of the player.
-    /// </summary>
-    [DefaultValue("en")]
-    public string LanguageIsoCode { get; set; } = "en";
-
-    /// <summary>
     /// Gets or sets the date and time until which the chat ban is in effect.
     /// </summary>
     public DateTime? ChatBanUntil { get; set; }
@@ -124,12 +116,6 @@ public class Account
     /// Gets or sets a value indicating whether this instance is vault extended.
     /// </summary>
     public bool IsVaultExtended { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether this instance is a template account
-    /// and therefore read-only within the game server.
-    /// </summary>
-    public bool IsTemplate { get; set; }
 
     /// <summary>
     /// Gets or sets the characters.

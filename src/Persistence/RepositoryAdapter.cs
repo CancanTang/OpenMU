@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.Persistence;
 
 using System.Collections;
-using System.Threading;
 
 /// <summary>
 /// An adapter which takes an untyped <see cref="IRepository"/> and implements a generic <see cref="IRepository{T}"/> on top.
@@ -38,26 +37,26 @@ public class RepositoryAdapter<T> : IRepository<T>
     }
 
     /// <inheritdoc />
-    async ValueTask<IEnumerable> IRepository.GetAllAsync(CancellationToken cancellationToken = default)
+    ValueTask<IEnumerable> IRepository.GetAllAsync()
     {
-        return await this.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        throw new NotImplementedException();
     }
 
     /// <inheritdoc />
-    public async ValueTask<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<T>> GetAllAsync()
     {
-        return (IEnumerable<T>)await this._repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        return (IEnumerable<T>)await this._repository.GetAllAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async ValueTask<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async ValueTask<T?> GetByIdAsync(Guid id)
     {
-        return (T?)await this._repository.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        return (T?)await this._repository.GetByIdAsync(id).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    ValueTask<object?> IRepository.GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    ValueTask<object?> IRepository.GetByIdAsync(Guid id)
     {
-        return this._repository.GetByIdAsync(id, cancellationToken);
+        return this._repository.GetByIdAsync(id);
     }
 }

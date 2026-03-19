@@ -40,14 +40,13 @@ public class Jewels : InitializerBase
         itemDefinition.Name = "Jewel of Bless";
         itemDefinition.Number = 13;
         itemDefinition.Group = 14;
-        itemDefinition.DropsFromMonsters = false;
+        itemDefinition.DropsFromMonsters = true;
         itemDefinition.DropLevel = 25;
         itemDefinition.Durability = 1;
         itemDefinition.Width = 1;
         itemDefinition.Height = 1;
         itemDefinition.Value = 150;
         itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
-        this.AddItemToJewelItemDrop(itemDefinition);
         return itemDefinition;
     }
 
@@ -61,14 +60,13 @@ public class Jewels : InitializerBase
         itemDefinition.Name = "Jewel of Soul";
         itemDefinition.Number = 14;
         itemDefinition.Group = 14;
-        itemDefinition.DropsFromMonsters = false;
+        itemDefinition.DropsFromMonsters = true;
         itemDefinition.DropLevel = 30;
         itemDefinition.Durability = 1;
         itemDefinition.Width = 1;
         itemDefinition.Height = 1;
         itemDefinition.Value = 150;
         itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
-        this.AddItemToJewelItemDrop(itemDefinition);
         return itemDefinition;
     }
 
@@ -82,13 +80,12 @@ public class Jewels : InitializerBase
         itemDefinition.Name = "Jewel of Chaos";
         itemDefinition.Number = 15;
         itemDefinition.Group = 12;
-        itemDefinition.DropsFromMonsters = false;
+        itemDefinition.DropsFromMonsters = true;
         itemDefinition.DropLevel = 12;
         itemDefinition.Durability = 1;
         itemDefinition.Width = 1;
         itemDefinition.Height = 1;
         itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
-        this.AddItemToJewelItemDrop(itemDefinition);
         return itemDefinition;
     }
 }

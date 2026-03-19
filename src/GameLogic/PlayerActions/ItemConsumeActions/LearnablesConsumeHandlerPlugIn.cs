@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// Consume handler for items (e.g. scrolls, orbs) which add a skill when being consumed.
 /// </summary>
 [Guid("FD86947E-0B94-4490-8158-63B11A61565F")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LearnablesConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.LearnablesConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(LearnablesConsumeHandlerPlugIn), "Plugin which handles the consumption of items which add skills (e.g. scrolls, orbs).")]
 public class LearnablesConsumeHandlerPlugIn : BaseConsumeHandlerPlugIn
 {
     /// <inheritdoc />

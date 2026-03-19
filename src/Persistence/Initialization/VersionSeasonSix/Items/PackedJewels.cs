@@ -56,9 +56,9 @@ public class PackedJewels : InitializerBase
     }
 
     /// <summary>
-    /// Creates an <see cref="ItemDefinition"/> for the 'Packed Jewel of Soul'.
+    /// Creates an <see cref="ItemDefinition"/> for the 'Packed Jewel of Bless'.
     /// </summary>
-    /// <returns><see cref="ItemDefinition"/> for the 'Packed Jewel of Soul'.</returns>
+    /// <returns><see cref="ItemDefinition"/> for the 'Packed Jewel of Bless'.</returns>
     private ItemDefinition CreateJewelOfSoul()
     {
         var itemDefinition = this.Context.CreateNew<ItemDefinition>();

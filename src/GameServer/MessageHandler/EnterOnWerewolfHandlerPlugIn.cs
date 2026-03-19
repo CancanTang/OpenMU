@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// Handler for <see cref="EnterOnWerewolfRequest"/> packets.
 /// Called when: A player is running the quest "Infiltrate The Barracks of Balgass" (nr. 5), talking to the Werewolf npc in Crywolf.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.EnterOnWerewolfHandlerPlugIn_Name), Description = nameof(PlugInResources.EnterOnWerewolfHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(EnterOnWerewolfHandlerPlugIn), "Handler for EnterOnWerewolfRequest packets.")]
 [Guid("3ECA37DE-2D8E-4617-8A44-B1A616B7C74C")]
 [MinimumClient(3, 0, ClientLanguage.Invariant)]
 [BelongsToGroup(NpcActionGroupHandlerPlugIn.GroupKey)]

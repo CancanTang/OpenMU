@@ -16,22 +16,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="ISkillListViewPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.SkillListViewPlugIn_Name), Description = nameof(PlugInResources.SkillListViewPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("SkillListViewPlugIn", "The default implementation of the ISkillListViewPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("E67BB791-5BE7-4CC8-B2C9-38E86158A356")]
 [MinimumClient(3, 0, ClientLanguage.Invariant)]
 public class SkillListViewPlugIn : ISkillListViewPlugIn
 {
-    private const short Explosion79SkillId = 79;
-    private const short ForceSkillId = 60;
     private const short ForceWaveSkillId = 66;
-    private const short ForceWaveStrengSkillId = 509;
-    private const short KillingBlowSkillId = 260;
-    private const short BeastUppercutSkillId = 261;
-    private const short KillingBlowStrengSkillId = 551;
-    private const short BeastUppercutStrengSkillId = 552;
-    private const short KillingBlowMasterySkillId = 554;
-    private const short BeastUppercutMasterySkillId = 555;
 
     private readonly RemotePlayer _player;
 
@@ -67,18 +57,6 @@ public class SkillListViewPlugIn : ISkillListViewPlugIn
             return;
         }
 
-        if (skill.Number == KillingBlowSkillId
-            && this.SkillList.Any(s => s?.Number == KillingBlowStrengSkillId || s?.Number == KillingBlowMasterySkillId))
-        {
-            return;
-        }
-
-        if (skill.Number == BeastUppercutSkillId
-            && this.SkillList.Any(s => s?.Number == BeastUppercutStrengSkillId || s?.Number == BeastUppercutMasterySkillId))
-        {
-            return;
-        }
-
         var skillIndex = this.AddSkillToList(skill);
         await this._player.Connection.SendSkillAddedAsync(skillIndex, (ushort)skill.Number, 0).ConfigureAwait(false);
     }
@@ -86,12 +64,9 @@ public class SkillListViewPlugIn : ISkillListViewPlugIn
     /// <inheritdoc/>
     public virtual async ValueTask RemoveSkillAsync(Skill skill)
     {
-        if (skill.Number == ForceWaveSkillId
-            && this.SkillList.Any(s => s?.Number == ForceWaveStrengSkillId)
-            && this.SkillList.FirstOrDefault(s => s?.Number == ForceSkillId) is { } forceSkill)
+        if (skill.Number == ForceWaveSkillId)
         {
-            // Force wave strengthener is replacing force skill
-            skill = forceSkill;
+            return;
         }
 
         var skillIndex = this.SkillList.IndexOf(skill);
@@ -167,11 +142,7 @@ public class SkillListViewPlugIn : ISkillListViewPlugIn
         skills.RemoveAll(s => replacedSkills.Contains(s.Skill));
         skills.RemoveAll(s => s.Skill?.SkillType == SkillType.PassiveBoost);
 
-        skills.RemoveAll(s => s.Skill?.Number == ForceWaveSkillId || s.Skill?.Number == Explosion79SkillId);
-        if (skills.Any(s => s.Skill?.Number == ForceWaveStrengSkillId))
-        {
-            skills.RemoveAll(s => s.Skill?.Number == ForceSkillId);
-        }
+        skills.RemoveAll(s => s.Skill?.Number == ForceWaveSkillId);
 
         foreach (var skillEntry in skills.Distinct(default(SkillEqualityComparer)))
         {

@@ -42,6 +42,7 @@ public class TradeAcceptAction : BaseTradeAction
                     await this.CancelTradeAsync(tradeAccepter).ConfigureAwait(false);
                     await this.CancelTradeAsync(tradePartner).ConfigureAwait(false);
                 }
+                
             }
         }
         else
@@ -64,7 +65,7 @@ public class TradeAcceptAction : BaseTradeAction
     internal async ValueTask OpenTradeAsync(ITrader trader)
     {
         // first make sure that all items which could be transferred are already present in the database
-        await trader.SaveProgressAsync().ConfigureAwait(false);
+        await trader.PersistenceContext.SaveChangesAsync().ConfigureAwait(false);
 
         trader.BackupInventory = new BackupItemStorage(trader.Inventory!.ItemStorage);
         trader.TradingMoney = 0;

@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IChaosCastleStateViewPlugin"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ChaosCastleStateViewPlugIn_Name), Description = nameof(PlugInResources.ChaosCastleStateViewPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(ChaosCastleStateViewPlugIn), "The default implementation of the IChaosCastleStateViewPlugin which is forwarding everything to the game client with specific data packets.")]
 [Guid("E7E73888-8B8E-4D06-8D95-1C1CDEDDA9EC")]
 public class ChaosCastleStateViewPlugIn : IChaosCastleStateViewPlugin
 {

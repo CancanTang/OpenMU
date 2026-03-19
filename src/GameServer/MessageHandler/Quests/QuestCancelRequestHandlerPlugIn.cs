@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for quest cancel request packets (0xF6, 0x0F identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.QuestCancelRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.QuestCancelRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Quest - Cancel Request", "Packet handler for quest cancel request packets (0xF6, 0x0F identifier)")]
 [Guid("996E33ED-14B7-4165-9E6C-AE583974D0B7")]
 [BelongsToGroup(QuestGroupHandlerPlugIn.GroupKey)]
 public class QuestCancelRequestHandlerPlugIn : ISubPacketHandlerPlugIn

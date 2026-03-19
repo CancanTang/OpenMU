@@ -17,8 +17,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the chat view which is forwarding everything to the game client which specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PetBehaviourChangedViewPlugIn_Name), Description = nameof(PlugInResources.PetBehaviourChangedViewPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(PetBehaviourChangedViewPlugIn), "View plugin to signal a changed pet behaviour.")]
 [Guid("7402B7AA-1DCA-437A-A5D1-1B54C54EC0FC")]
 internal class PetBehaviourChangedViewPlugIn : IPetBehaviourChangedViewPlugIn
 {
@@ -34,7 +33,7 @@ internal class PetBehaviourChangedViewPlugIn : IPetBehaviourChangedViewPlugIn
     }
 
     /// <inheritdoc />
-    public async ValueTask PetBehaviourChangedAsync(Item pet, PetBehaviour behaviour, IAttackable? target)
+    public async ValueTask PetBehaviourChanged(Item pet, PetBehaviour behaviour, IAttackable? target)
     {
         await this._player.Connection.SendPetModeAsync(Convert(behaviour), target?.GetId(this._player) ?? 0xFFFF).ConfigureAwait(false);
     }

@@ -14,13 +14,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for logout packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LogOutHandlerPlugIn_Name), Description = nameof(PlugInResources.LogOutHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Logout handler", "Handler for logout packets.")]
 [Guid("84108668-70A0-42F6-AA80-B43757F12836")]
 [BelongsToGroup(LogInOutGroup.GroupKey)]
 public class LogOutHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly LogoutAction _logoutAction = new();
+    private readonly LogoutAction _logoutAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

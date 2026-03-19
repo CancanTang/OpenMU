@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// Data initialization plugin for Version 0.95d.
 /// </summary>
 [Guid("D24791DC-5808-42A9-AFEA-7C398C0D8C84")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DataInitialization095d_Name), Description = nameof(PlugInResources.DataInitialization095d_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Version 0.95d Initialization", "Provides initial data for Version 0.95d")]
 public class DataInitialization : DataInitializationBase
 {
     /// <summary>

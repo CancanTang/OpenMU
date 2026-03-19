@@ -45,9 +45,9 @@ public enum CharacterTransformationSkin
     DeathCow = 41,
 
     /// <summary>
-    /// The elite skeleton skin.
+    /// The elite skill soldier skin.
     /// </summary>
-    EliteSkeleton = 372,
+    EliteSkillSoldier = 372,
 
     /// <summary>
     /// The jack olantern skin.

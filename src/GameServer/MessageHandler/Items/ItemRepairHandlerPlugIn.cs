@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for item repair packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ItemRepairHandlerPlugIn_Name), Description = nameof(PlugInResources.ItemRepairHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ItemRepairHandlerPlugIn", "Handler for item repair packets.")]
 [Guid("85b4a195-c90c-47f8-bae2-833b5d2ef398")]
 internal class ItemRepairHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly ItemRepairAction _repairAction = new();
+    private readonly ItemRepairAction _repairAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected { get; } = RepairItemRequest.HeaderType >= 0xC3;

@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// Consume handler for upgrading items up to level 6 using the Jewel of Bless.
 /// </summary>
 [Guid("E95A0292-B3B4-4E8C-AC5A-7F3DB4F01A37")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.BlessJewelConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.BlessJewelConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(BlessJewelConsumeHandlerPlugIn), "Plugin which handles the jewel of bless consumption.")]
 public class BlessJewelConsumeHandlerPlugIn : UpgradeItemLevelJewelConsumeHandlerPlugIn<BlessJewelConsumeHandlerPlugInConfiguration>
 {
     /// <inheritdoc />

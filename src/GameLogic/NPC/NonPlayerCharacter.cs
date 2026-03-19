@@ -4,9 +4,10 @@
 
 namespace MUnique.OpenMU.GameLogic.NPC;
 
+using Nito.AsyncEx;
+
 using MUnique.OpenMU.GameLogic.Views.World;
 using MUnique.OpenMU.Pathfinding;
-using Nito.AsyncEx;
 
 /// <summary>
 /// The implementation of a non-player-character (Monster) which can not be attacked or attack.
@@ -46,7 +47,7 @@ public class NonPlayerCharacter : AsyncDisposable, IObservable, IRotatable, ILoc
     /// <summary>
     /// Gets the lock for <see cref="Observers"/>.
     /// </summary>
-    public AsyncReaderWriterLock ObserverLock { get; } = new();
+    public AsyncReaderWriterLock ObserverLock { get; } = new ();
 
     /// <inheritdoc/>
     public GameMap CurrentMap { get; }
@@ -185,11 +186,6 @@ public class NonPlayerCharacter : AsyncDisposable, IObservable, IRotatable, ILoc
     }
 
     /// <summary>
-    /// Gets a value indicating whether this instance can spawn in a safe zone.
-    /// </summary>
-    protected virtual bool CanSpawnInSafezone => this.Definition.ObjectKind != NpcObjectKind.Monster && this.Definition.ObjectKind != NpcObjectKind.Trap;
-
-    /// <summary>
     /// Gets the spawn direction.
     /// </summary>
     /// <param name="configuredDirection">The configured direction.</param>
@@ -206,13 +202,8 @@ public class NonPlayerCharacter : AsyncDisposable, IObservable, IRotatable, ILoc
 
     private Point? GetNewSpawnPoint(MonsterSpawnArea spawnArea)
     {
-        var minX = Math.Min(spawnArea.X1, spawnArea.X2);
-        var maxX = Math.Max(spawnArea.X1, spawnArea.X2);
-        var minY = Math.Min(spawnArea.Y1, spawnArea.Y2);
-        var maxY = Math.Max(spawnArea.Y1, spawnArea.Y2);
-
-        var x = Rand.NextInt(minX, maxX + 1);
-        var y = Rand.NextInt(minY, maxY + 1);
+        var x = Rand.NextInt(spawnArea.X1, spawnArea.X2 + 1);
+        var y = Rand.NextInt(spawnArea.Y1, spawnArea.Y2 + 1);
         var point = new Point((byte)x, (byte)y);
         if (this.IsValidSpawnPoint(point))
         {
@@ -224,7 +215,7 @@ public class NonPlayerCharacter : AsyncDisposable, IObservable, IRotatable, ILoc
 
     private bool IsValidSpawnPoint(Point spawnPoint)
     {
-        var isSafezoneAllowed = this.CanSpawnInSafezone;
+        var isSafezoneAllowed = this.Definition.ObjectKind != NpcObjectKind.Monster && this.Definition.ObjectKind != NpcObjectKind.Trap;
         var isInSafezone = this.CurrentMap.Terrain.SafezoneMap[spawnPoint.X, spawnPoint.Y];
         var npcCanWalk = this.Definition.ObjectKind == NpcObjectKind.Monster || this.Definition.ObjectKind == NpcObjectKind.Guard;
         var isWalkable = this.CurrentMap.Terrain.WalkMap[spawnPoint.X, spawnPoint.Y];

@@ -15,15 +15,14 @@ using MUnique.OpenMU.PlugIns;
 /// Serializer for the appearance of a player, compatible with the client of version 0.75.
 /// </summary>
 [Guid("D20EEBFA-12C1-4A86-B202-63121EB2A95B")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.AppearanceSerializer075_Name), Description = nameof(PlugInResources.AppearanceSerializer075_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Appearance Serializer 0.75", "Serializer for the appearance of a player, compatible with the client of version 0.75.")]
 [MinimumClient(0, 75, ClientLanguage.Invariant)]
 public class AppearanceSerializer075 : IAppearanceSerializer
 {
     /// <summary>
     /// A cache which holds the results of the serializer.
     /// </summary>
-    private static readonly ConcurrentDictionary<IAppearanceData, byte[]> Cache = new();
+    private static readonly ConcurrentDictionary<IAppearanceData, byte[]> Cache = new ();
 
     /// <inheritdoc/>
     public int NeededSpace => 9;

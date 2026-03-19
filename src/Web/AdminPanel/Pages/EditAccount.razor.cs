@@ -4,13 +4,12 @@
 
 namespace MUnique.OpenMU.Web.AdminPanel.Pages;
 
-using System.Threading;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.Persistence;
-using MUnique.OpenMU.Web.Shared.Components.Form;
-using MUnique.OpenMU.Web.Shared.Components.ItemEdit;
+using MUnique.OpenMU.Web.AdminPanel.Components.Form;
+using MUnique.OpenMU.Web.AdminPanel.Components.ItemEdit;
 
 /// <summary>
 /// The edit page for account data.
@@ -34,9 +33,9 @@ public partial class EditAccount : EditBase
     protected override IDataSource EditDataSource => this.AccountData;
 
     /// <inheritdoc />
-    protected override async ValueTask LoadOwnerAsync(CancellationToken cancellationToken)
+    protected override async ValueTask LoadOwnerAsync()
     {
-        await this.AccountData.GetOwnerAsync(this.AccountId, cancellationToken).ConfigureAwait(true);
+        await this.AccountData.GetOwnerAsync(this.AccountId).ConfigureAwait(true);
     }
 
     /// <inheritdoc />

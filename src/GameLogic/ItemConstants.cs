@@ -7,7 +7,7 @@ namespace MUnique.OpenMU.GameLogic;
 /// <summary>
 /// A central place to keep item identifiers, so we can keep track of them.
 /// </summary>
-public class ItemConstants
+internal class ItemConstants
 {
     /// <summary>
     /// Gets the identifier for the summon orb.

@@ -18,8 +18,7 @@ using MUnique.OpenMU.PlugIns;
 /// <see cref="GameMapDefinition.SafezoneMap"/> might not be suitable.
 /// </remarks>
 [Guid("825C3110-75F1-4157-A189-15B365B4791E")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.TownPortalScrollConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.TownPortalScrollConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(TownPortalScrollConsumeHandlerPlugIn), "Plugin which handles the town portal scroll consumption.")]
 public class TownPortalScrollConsumeHandlerPlugIn : BaseConsumeHandlerPlugIn
 {
     /// <inheritdoc />

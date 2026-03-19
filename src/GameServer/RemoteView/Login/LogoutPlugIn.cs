@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="ILogoutPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LogoutPlugIn_Name), Description = nameof(PlugInResources.LogoutPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("LogoutPlugIn", "The default implementation of the ILogoutPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("f4a5185b-b422-463d-8df0-56f270a8831e")]
 public class LogoutPlugIn : ILogoutPlugIn
 {

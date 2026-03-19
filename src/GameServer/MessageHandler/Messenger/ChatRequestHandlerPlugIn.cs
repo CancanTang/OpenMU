@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for chat request packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ChatRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.ChatRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ChatRequestHandlerPlugIn", "Handler for chat request packets.")]
 [Guid("acf9263f-ba71-4d84-b8f8-84e494eb4462")]
 internal class ChatRequestHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly ChatRequestAction _chatRequestAction = new();
+    private readonly ChatRequestAction _chatRequestAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

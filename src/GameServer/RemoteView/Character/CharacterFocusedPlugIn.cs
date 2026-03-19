@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="ICharacterFocusedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CharacterFocusedPlugIn_Name), Description = nameof(PlugInResources.CharacterFocusedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("CharacterFocusedPlugIn", "The default implementation of the ICharacterFocusedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("f6fa0149-3a2c-41c2-aeb1-94b647641ffb")]
 public class CharacterFocusedPlugIn : ICharacterFocusedPlugIn
 {

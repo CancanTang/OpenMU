@@ -16,8 +16,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IQuestStateResponsePlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.QuestStateResponsePlugIn_Name), Description = nameof(PlugInResources.QuestStateResponsePlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Quest - State response", "The default implementation of the IQuestStateResponsePlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("BBE63528-67DC-4D5F-8C9D-D09AB488CC55")]
 [MinimumClient(0, 90, ClientLanguage.Invariant)]
 public class QuestStateResponsePlugIn : IQuestStateResponsePlugIn
@@ -35,28 +34,11 @@ public class QuestStateResponsePlugIn : IQuestStateResponsePlugIn
     {
         if (questState is null || questState.Group == QuestConstants.LegacyQuestGroup)
         {
-            await this.ShowLegacyQuestStateAsync(this._player.SelectedCharacter?.QuestStates.FirstOrDefault(state => state.Group == QuestConstants.LegacyQuestGroup)).ConfigureAwait(false);
+            questState ??= this._player.SelectedCharacter?.QuestStates.FirstOrDefault(state => state.Group == QuestConstants.LegacyQuestGroup);
+            await questState.SendLegacyQuestStateAsync(this._player).ConfigureAwait(false);
             return;
         }
 
-        await this.ShowNewQuestStateAsync(questState).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Shows the legacy quest state.
-    /// </summary>
-    /// <param name="questState">State of the quest.</param>
-    protected virtual async ValueTask ShowLegacyQuestStateAsync(CharacterQuestState? questState)
-    {
-        await questState.SendLegacyQuestStateAsync(this._player).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Shows the quest state of the new quest system.
-    /// </summary>
-    /// <param name="questState">State of the quest.</param>
-    protected virtual async ValueTask ShowNewQuestStateAsync(CharacterQuestState questState)
-    {
         var connection = this._player.Connection;
         if (connection is null)
         {

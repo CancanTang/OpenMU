@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// This update sets the right settings for the chain lightning skill.
 /// </summary>
-[PlugIn]
-[Display(Name = PlugInName, Description = PlugInDescription)]
+[PlugIn(PlugInName, PlugInDescription)]
 [Guid("426497DB-A1D7-4EC5-BE6A-C8AEABC288E2")]
 public class WizEnhanceAndRagefighterSkillsUpdatePlugIn : UpdatePlugInBase
 {

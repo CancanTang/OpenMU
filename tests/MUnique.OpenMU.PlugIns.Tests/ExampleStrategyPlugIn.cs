@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.PlugIns.Tests;
 
-using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 
 /// <summary>
@@ -12,8 +11,7 @@ using System.Runtime.InteropServices;
 /// </summary>
 /// <seealso cref="MUnique.OpenMU.PlugIns.Tests.IExampleStrategyPlugIn" />
 [Guid("69A6FCD1-E828-4841-BE91-E064231ED7B9")]
-[PlugIn]
-[Display(Name = nameof(ExampleStrategyPlugIn), Description = "A test strategy plugin.")]
+[PlugIn(nameof(ExampleStrategyPlugIn), "A test strategy plugin.")]
 public class ExampleStrategyPlugIn : IExampleStrategyPlugIn
 {
     /// <summary>

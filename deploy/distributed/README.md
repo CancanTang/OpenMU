@@ -1,7 +1,5 @@
 # Distributed
 
-*!!! CURRENTLY BROKEN AND UNSUPPORTED, DOCS ARE OUT OF DATE !!!*
-
 ## Deployment with docker-compose
 
 Currently, we just have a docker-compose file for the deployment.

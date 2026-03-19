@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for quest client action packets (0xF6, 0x10 identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.QuestClientActionHandlerPlugIn_Name), Description = nameof(PlugInResources.QuestClientActionHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Quest - Client Action", "Packet handler for quest client action packets (0xF6, 0x10 identifier)")]
 [Guid("02F632AB-17E4-4B73-90DA-92FD5310B3CF")]
 [BelongsToGroup(QuestGroupHandlerPlugIn.GroupKey)]
 public class QuestClientActionHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly QuestClientAction _questClientAction = new();
+    private readonly QuestClientAction _questClientAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

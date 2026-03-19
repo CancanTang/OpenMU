@@ -47,7 +47,6 @@ internal abstract class SkillsInitializerBase : InitializerBase
     /// <param name="movesToTarget">If set to <c>true</c>, the skill moves the player to the target.</param>
     /// <param name="movesTarget">If set to <c>true</c>, it moves target randomly.</param>
     /// <param name="cooldownMinutes">The cooldown minutes.</param>
-    /// <param name="hitsPerAttack">The number of hits per attack.</param>
     protected void CreateSkill(
         SkillNumber number,
         string name,
@@ -67,8 +66,7 @@ internal abstract class SkillsInitializerBase : InitializerBase
         SkillTargetRestriction targetRestriction = SkillTargetRestriction.Undefined,
         bool movesToTarget = false,
         bool movesTarget = false,
-        int cooldownMinutes = 0,
-        byte hitsPerAttack = 1)
+        int cooldownMinutes = 0)
     {
         var skill = this.Context.CreateNew<Skill>();
         this.GameConfiguration.Skills.Add(skill);
@@ -77,7 +75,6 @@ internal abstract class SkillsInitializerBase : InitializerBase
         skill.MovesToTarget = movesToTarget;
         skill.MovesTarget = movesTarget;
         skill.AttackDamage = damage;
-        skill.NumberOfHitsPerAttack = hitsPerAttack;
 
         this.CreateSkillRequirementIfNeeded(skill, Stats.Level, levelRequirement);
         this.CreateSkillRequirementIfNeeded(skill, Stats.TotalLeadership, leadershipRequirement);
@@ -106,64 +103,9 @@ internal abstract class SkillsInitializerBase : InitializerBase
         skill.SetGuid(skill.Number);
     }
 
-    /// <summary>
-    /// Adds the area skill settings for the specified skill.
-    /// </summary>
-    /// <param name="skillNumber">The skill number.</param>
-    /// <param name="useFrustumFilter">If set to <c>true</c>, the skill should use a frustum filter.</param>
-    /// <param name="frustumStartWidth">Start width of the frustum.</param>
-    /// <param name="frustumEndWidth">End width of the frustum.</param>
-    /// <param name="frustumDistance">The frustum distance.</param>
-    /// <param name="useDeferredHits">If set to <c>true</c>, the skill should use deferred hits.</param>
-    /// <param name="delayPerOneDistance">The delay per one distance.</param>
-    /// <param name="delayBetweenHits">The delay between hits.</param>
-    /// <param name="minimumHitsPerTarget">The minimum hits per target.</param>
-    /// <param name="maximumHitsPerTarget">The maximum hits per target.</param>
-    /// <param name="maximumHitsPerAttack">The maximum hits per attack.</param>
-    /// <param name="hitChancePerDistanceMultiplier">The hit chance per distance multiplier.</param>
-    /// <param name="useTargetAreaFilter">If set to <c>true</c>, the skill should use a target area filter.</param>
-    /// <param name="targetAreaDiameter">The target area diameter.</param>
-    /// <param name="projectileCount">The number of projectiles/arrows. When greater than 1, they are evenly distributed within the frustum.</param>
-    protected void AddAreaSkillSettings(
-        SkillNumber skillNumber,
-        bool useFrustumFilter,
-        float frustumStartWidth,
-        float frustumEndWidth,
-        float frustumDistance,
-        bool useDeferredHits = false,
-        TimeSpan delayPerOneDistance = default,
-        TimeSpan delayBetweenHits = default,
-        int minimumHitsPerTarget = 1,
-        int maximumHitsPerTarget = 1,
-        int maximumHitsPerAttack = default,
-        float hitChancePerDistanceMultiplier = 1.0f,
-        bool useTargetAreaFilter = false,
-        float targetAreaDiameter = default,
-        int projectileCount = 1)
-    {
-        var skill = this.GameConfiguration.Skills.First(s => s.Number == (short)skillNumber);
-        var areaSkillSettings = this.Context.CreateNew<AreaSkillSettings>();
-        skill.AreaSkillSettings = areaSkillSettings;
-
-        areaSkillSettings.UseFrustumFilter = useFrustumFilter;
-        areaSkillSettings.FrustumStartWidth = frustumStartWidth;
-        areaSkillSettings.FrustumEndWidth = frustumEndWidth;
-        areaSkillSettings.FrustumDistance = frustumDistance;
-        areaSkillSettings.UseTargetAreaFilter = useTargetAreaFilter;
-        areaSkillSettings.TargetAreaDiameter = targetAreaDiameter;
-        areaSkillSettings.UseDeferredHits = useDeferredHits;
-        areaSkillSettings.DelayPerOneDistance = delayPerOneDistance;
-        areaSkillSettings.DelayBetweenHits = delayBetweenHits;
-        areaSkillSettings.MinimumNumberOfHitsPerTarget = minimumHitsPerTarget;
-        areaSkillSettings.MaximumNumberOfHitsPerTarget = maximumHitsPerTarget;
-        areaSkillSettings.MaximumNumberOfHitsPerAttack = maximumHitsPerAttack;
-        areaSkillSettings.HitChancePerDistanceMultiplier = hitChancePerDistanceMultiplier;
-        areaSkillSettings.ProjectileCount = projectileCount;
-    }
-
     private void ApplyElementalModifier(ElementalType elementalModifier, Skill skill)
     {
-        if ((SkillNumber)skill.Number is SkillNumber.IceArrow)
+        if ((SkillNumber)skill.Number is SkillNumber.IceArrow or SkillNumber.IceArrowStrengthener)
         {
             skill.ElementalModifierTarget = Stats.IceResistance.GetPersistent(this.GameConfiguration);
             skill.MagicEffectDef = this.CreateEffect(ElementalType.Ice, MagicEffectNumber.Freeze, Stats.IsFrozen, 5);
@@ -175,13 +117,6 @@ internal abstract class SkillsInitializerBase : InitializerBase
             case ElementalType.Ice:
                 skill.ElementalModifierTarget = Stats.IceResistance.GetPersistent(this.GameConfiguration);
                 skill.MagicEffectDef = this.CreateEffect(ElementalType.Ice, MagicEffectNumber.Iced, Stats.IsIced, 10);
-
-                if ((SkillNumber)skill.Number is SkillNumber.ChainDrive)
-                {
-                    skill.MagicEffectDef.Chance = this.Context.CreateNew<PowerUpDefinitionValue>();
-                    skill.MagicEffectDef.Chance.ConstantValue.Value = 0.4f;
-                }
-
                 break;
             case ElementalType.Poison:
                 skill.ElementalModifierTarget = Stats.PoisonResistance.GetPersistent(this.GameConfiguration);

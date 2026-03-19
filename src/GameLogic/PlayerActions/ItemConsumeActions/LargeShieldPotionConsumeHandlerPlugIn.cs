@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// Consume handler for large shield potions.
 /// </summary>
 [Guid("683C4BF1-8794-41B0-9742-B17B73A12BFE")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LargeShieldPotionConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.LargeShieldPotionConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(LargeShieldPotionConsumeHandlerPlugIn), "Plugin which handles the large shield potion consumption.")]
 public class LargeShieldPotionConsumeHandlerPlugIn : ShieldPotionConsumeHandlerPlugIn
 {
     /// <inheritdoc />

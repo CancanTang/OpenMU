@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="INpcItemBoughtPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.NpcItemBoughtPlugIn_Name), Description = nameof(PlugInResources.NpcItemBoughtPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("NpcItemBoughtPlugIn", "The default implementation of the INpcItemBoughtPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("cf45b5e2-158a-4998-bc73-fed4d4d31c0c")]
 public class NpcItemBoughtPlugIn : INpcItemBoughtPlugIn
 {
@@ -46,10 +45,8 @@ public class NpcItemBoughtPlugIn : INpcItemBoughtPlugIn
             {
                 InventorySlot = newItem.ItemSlot,
             };
-            var itemSize = itemSerializer.SerializeItem(packet.ItemData, newItem);
-            var actualSize = ItemBoughtRef.GetRequiredSize(itemSize);
-            span.Slice(0, actualSize).SetPacketSize();
-            return actualSize;
+            itemSerializer.SerializeItem(packet.ItemData, newItem);
+            return size;
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);

@@ -1,20 +1,16 @@
 ﻿@page "/gameServer/{gameServerId:int}/map/{mapId:guid}"
 @implements IDisposable
 
-@using MUnique.OpenMU.Web.AdminPanel.Properties
 @using MUnique.OpenMU.Web.Map.Components
 @using MUnique.OpenMU.Web.Map
 @using MUnique.OpenMU.Interfaces
 @using MUnique.OpenMU.GameLogic
 
-<PageTitle>OpenMU: @Resources.LiveMap</PageTitle>
-<Breadcrumb Caption="@Resources.LiveMap" />
-
 @if (this._gameServer is not null)
 {
     <div>
         <NavLink href="" Match="NavLinkMatch.All">
-            <span>@Resources.All</span>
+            <span>All</span>
         </NavLink>
         <span> / @this._map?.MapName</span>
     </div>

@@ -1,3 +1,5 @@
+version: '3'
+
 services:
   nginx-80:
     image: nginx:alpine
@@ -18,11 +20,7 @@ services:
       - "55901:55901"
       - "55902:55902"
       - "55903:55903"
-      - "55904:55904"
-      - "55905:55905"
-      - "55906:55906"
       - "44405:44405"
-      - "44406:44406"
       - "55980:55980"
     environment:
       DB_HOST: database
@@ -43,7 +41,7 @@ services:
     ports:
       - "5432"
     volumes:
-      - dbdata:/var/lib/postgresql #store data on volume
+      - dbdata:/var/lib/postgresql/data #store data on volume
 
 volumes:
   dbdata:

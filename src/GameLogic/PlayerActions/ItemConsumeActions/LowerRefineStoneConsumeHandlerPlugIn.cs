@@ -12,15 +12,14 @@ using MUnique.OpenMU.PlugIns;
 /// Consume handler for the Lower Refine Stone which increases the item option of <see cref="ItemOptionTypes.HarmonyOption"/>.
 /// </summary>
 [Guid("71380E37-7AA9-447A-8A83-D08B676E55E1")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LowerRefineStoneConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.LowerRefineStoneConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
-public class LowerRefineStoneConsumeHandlerPlugIn : RefineStoneUpgradeConsumeHandlerPlugIn
+[PlugIn(nameof(LowerRefineStoneConsumeHandlerPlugIn), "Plugin which handles the lower refine stone consumption.")]
+public class LowerRefineStoneConsumeHandlerPlugIn : ItemUpgradeConsumeHandlerPlugIn
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LowerRefineStoneConsumeHandlerPlugIn" /> class.
     /// </summary>
     public LowerRefineStoneConsumeHandlerPlugIn()
-        : base(new ItemUpgradeConfiguration(ItemOptionTypes.HarmonyOption, false, true, 0.2, ItemFailResult.SetOptionToBaseLevel))
+        : base(new ItemUpgradeConfiguration(ItemOptionTypes.HarmonyOption, false, true, 0.2, ItemFailResult.SetOptionToLevelOne))
     {
     }
 

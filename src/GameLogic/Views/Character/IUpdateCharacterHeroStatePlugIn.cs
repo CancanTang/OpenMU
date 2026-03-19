@@ -4,8 +4,6 @@
 
 namespace MUnique.OpenMU.GameLogic.Views.Character;
 
-using MUnique.OpenMU.DataModel.Entities;
-
 /// <summary>
 /// Interface of a view whose implementation informs about a change in the <see cref="Character.State"/>.
 /// </summary>

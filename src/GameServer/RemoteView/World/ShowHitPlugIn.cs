@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IShowHitPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ShowHitPlugIn_Name), Description = nameof(PlugInResources.ShowHitPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ShowHitPlugIn", "The default implementation of the IShowHitPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("bb59de05-d3a1-4b52-a1c6-975decf0f1a3")]
 public class ShowHitPlugIn : IShowHitPlugIn
 {
@@ -63,8 +62,6 @@ public class ShowHitPlugIn : IShowHitPlugIn
                 targetId,
                 healthDamage,
                 this.GetDamageKind(hitInfo.Attributes),
-                hitInfo.Attributes.HasFlag(DamageAttributes.RageFighterStreakHit),
-                hitInfo.Attributes.HasFlag(DamageAttributes.RageFighterStreakFinalHit),
                 hitInfo.Attributes.HasFlag(DamageAttributes.Double),
                 hitInfo.Attributes.HasFlag(DamageAttributes.Triple),
                 shieldDamage).ConfigureAwait(false);
@@ -102,33 +99,33 @@ public class ShowHitPlugIn : IShowHitPlugIn
         }
     }
 
-    private DamageKind GetDamageKind(DamageAttributes attributes)
+    private ObjectHit.DamageKind GetDamageKind(DamageAttributes attributes)
     {
         if (attributes.HasFlag(DamageAttributes.IgnoreDefense))
         {
-            return DamageKind.IgnoreDefenseCyan;
+            return ObjectHit.DamageKind.IgnoreDefenseCyan;
         }
 
         if (attributes.HasFlag(DamageAttributes.Excellent))
         {
-            return DamageKind.ExcellentLightGreen;
+            return ObjectHit.DamageKind.ExcellentLightGreen;
         }
 
         if (attributes.HasFlag(DamageAttributes.Critical))
         {
-            return DamageKind.CriticalBlue;
+            return ObjectHit.DamageKind.CriticalBlue;
         }
 
         if (attributes.HasFlag(DamageAttributes.Reflected))
         {
-            return DamageKind.ReflectedLightPink;
+            return ObjectHit.DamageKind.ReflectedDarkPink;
         }
 
         if (attributes.HasFlag(DamageAttributes.Poison))
         {
-            return DamageKind.PoisonDarkGreen;
+            return ObjectHit.DamageKind.PoisonDarkGreen;
         }
 
-        return DamageKind.NormalRed;
+        return ObjectHit.DamageKind.NormalRed;
     }
 }

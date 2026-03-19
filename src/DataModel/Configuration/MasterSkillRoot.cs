@@ -4,6 +4,8 @@
 
 namespace MUnique.OpenMU.DataModel.Configuration;
 
+using MUnique.OpenMU.Annotations;
+
 /// <summary>
 /// The root of a master skill tree. One character can have more than one root.
 /// </summary>
@@ -18,11 +20,11 @@ public partial class MasterSkillRoot
     /// <summary>
     /// Gets or sets the name.
     /// </summary>
-    public LocalizedString Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <inheritdoc />
-    public override string? ToString()
+    public override string ToString()
     {
-        return this.Name.ToString();
+        return this.Name;
     }
 }

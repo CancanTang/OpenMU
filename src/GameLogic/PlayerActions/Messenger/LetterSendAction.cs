@@ -30,7 +30,7 @@ public class LetterSendAction
         var sendPrice = player.GameContext.Configuration.LetterSendPrice;
         if (player.Money < sendPrice)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.NotEnoughMoneyToSendLetter)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Not enough Zen to send a letter.", MessageType.BlueNormal)).ConfigureAwait(false);
             await player.InvokeViewPlugInAsync<ILetterSendResultPlugIn>(p => p.LetterSendResultAsync(LetterSendSuccess.NotEnoughMoney, letterId)).ConfigureAwait(false);
             return;
         }
@@ -63,7 +63,7 @@ public class LetterSendAction
         {
             player.Logger.LogError(ex, "Unexpected error when trying to send a letter");
             await player.InvokeViewPlugInAsync<ILetterSendResultPlugIn>(p => p.LetterSendResultAsync(LetterSendSuccess.TryAgain, letterId)).ConfigureAwait(false);
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ErrorDuringSendingLetter)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Oops, some error happened during sending the Letter.", MessageType.BlueNormal)).ConfigureAwait(false);
             return;
         }
 
@@ -87,7 +87,7 @@ public class LetterSendAction
         letterBody.Message = message;
         letterBody.SenderAppearance = context.CreateNew<AppearanceData>();
         letterBody.SenderAppearance.CharacterClass = player.AppearanceData.CharacterClass;
-        player.AppearanceData.EquippedItems.Select(i => i.MakePersistent(context, player.GameContext.Configuration)).ForEach(letterBody.SenderAppearance.EquippedItems.Add);
+        player.AppearanceData.EquippedItems.Select(i => i.MakePersistent(context)).ForEach(letterBody.SenderAppearance.EquippedItems.Add);
         letterBody.Rotation = rotation;
         letterBody.Animation = animation;
         return letterHeader;

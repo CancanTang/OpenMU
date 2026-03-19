@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for character focus packets (0xF3, 0x15 identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CharacterFocusPacketHandlerPlugIn_Name), Description = nameof(PlugInResources.CharacterFocusPacketHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Character - Focus", "Packet handler for character focus packets (0xF3, 0x15 identifier).")]
 [Guid("8687C77F-E26C-4510-AD85-E5F51305DE2A")]
 [BelongsToGroup(CharacterGroupHandlerPlugIn.GroupKey)]
 internal class CharacterFocusPacketHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly FocusCharacterAction _focusCharacterAction = new();
+    private readonly FocusCharacterAction _focusCharacterAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

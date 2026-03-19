@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.DataModel.Configuration;
 
 using MUnique.OpenMU.Annotations;
-using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Defines the kind of targets for the <see cref="MiniGameChangeEvent"/>.
@@ -45,13 +44,13 @@ public partial class MiniGameChangeEvent
     /// <summary>
     /// Gets or sets the description about the event.
     /// </summary>
-    public LocalizedString Description { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
     /// Gets or sets the (golden) message which should be shown to the player.
     /// One placeholder can be used to show the triggering player name.
     /// </summary>
-    public LocalizedString Message { get; set; }
+    public string? Message { get; set; }
 
     /// <summary>
     /// Gets or sets the targets which need to be killed to reach the required <see cref="NumberOfKills"/>.
@@ -91,10 +90,4 @@ public partial class MiniGameChangeEvent
     /// </summary>
     [MemberOfAggregate]
     public virtual ICollection<MiniGameTerrainChange> TerrainChanges { get; protected set; } = null!;
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{this.Index}: {this.Description}";
-    }
 }

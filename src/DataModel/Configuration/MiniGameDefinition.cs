@@ -24,12 +24,12 @@ public partial class MiniGameDefinition
     /// <summary>
     /// Gets or sets the name of the mini game.
     /// </summary>
-    public LocalizedString Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the description of the mini game.
     /// </summary>
-    public LocalizedString Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the level of the mini game.
@@ -146,10 +146,4 @@ public partial class MiniGameDefinition
     /// </summary>
     [MemberOfAggregate]
     public virtual ICollection<MiniGameChangeEvent> ChangeEvents { get; protected set; } = null!;
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return this.Name;
-    }
 }

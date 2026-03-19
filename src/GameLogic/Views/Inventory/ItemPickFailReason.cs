@@ -5,12 +5,12 @@
 namespace MUnique.OpenMU.GameLogic.Views.Inventory;
 
 /// <summary>
-/// The item pick fail reason for the <see cref="IItemPickUpFailedPlugIn"/>.
+/// The item pick fail reason for the <see cref="IItemPickUpFailedPlugIn.ItemPickUpFailed"/>.
 /// </summary>
 public enum ItemPickFailReason
 {
     /// <summary>
-    /// The undefined enum value. Should never be passed to <see cref="IItemPickUpFailedPlugIn"/>.
+    /// The undefined enum value. Should never be passed to <see cref="IItemPickUpFailedPlugIn.ItemPickUpFailed"/>.
     /// </summary>
     Undefined = 0,
 

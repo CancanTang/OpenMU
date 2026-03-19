@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for guild master answer packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CancelGuildCreationHandlerPlugIn_Name), Description = nameof(PlugInResources.CancelGuildCreationHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(CancelGuildCreationHandlerPlugIn), "Handler for CancelGuildCreation packets.")]
 [Guid("CDB87F7F-24FC-42E1-B375-9EAAEAAC0F8C")]
 internal class CancelGuildCreationHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly GuildMasterAnswerAction _answerAction = new();
+    private readonly GuildMasterAnswerAction _answerAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

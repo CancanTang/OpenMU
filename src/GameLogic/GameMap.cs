@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.GameLogic;
 
 using System.Collections.Concurrent;
 using System.Threading;
+using Nito.AsyncEx;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions;
 using MUnique.OpenMU.GameLogic.Views;
@@ -13,7 +14,6 @@ using MUnique.OpenMU.GameLogic.Views.World;
 using MUnique.OpenMU.Pathfinding;
 using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.PlugIns;
-using Nito.AsyncEx;
 
 /// <summary>
 /// The game map which contains instances of players, npcs, drops, and more.
@@ -163,34 +163,29 @@ public class GameMap
     /// <param name="locateable">The locateable object.</param>
     public async ValueTask AddAsync(ILocateable locateable)
     {
-        if (!this._objectsInMap.TryGetValue(locateable.Id, out var existing)
-            || existing != locateable)
+        switch (locateable)
         {
-            switch (locateable)
-            {
-                case DroppedItem droppedItem:
-                    droppedItem.Id = (ushort)this._dropIdGenerator.GenerateId();
-                    break;
-                case DroppedMoney droppedMoney:
-                    droppedMoney.Id = (ushort)this._dropIdGenerator.GenerateId();
-                    break;
-                case Player player:
-                    player.Id = (ushort)this._objectIdGenerator.GenerateId();
-                    Interlocked.Increment(ref this._playerCount);
-                    break;
-                case NonPlayerCharacter npc:
-                    npc.Id = (ushort)this._objectIdGenerator.GenerateId();
-                    break;
-                case ISupportIdUpdate idUpdate:
-                    idUpdate.Id = (ushort)this._objectIdGenerator.GenerateId();
-                    break;
-                default:
-                    throw new ArgumentException($"Adding an object of type {locateable.GetType()} is not supported.");
-            }
-
-            this._objectsInMap.Add(locateable.Id, locateable);
+            case DroppedItem droppedItem:
+                droppedItem.Id = (ushort)this._dropIdGenerator.GenerateId();
+                break;
+            case DroppedMoney droppedMoney:
+                droppedMoney.Id = (ushort)this._dropIdGenerator.GenerateId();
+                break;
+            case Player player:
+                player.Id = (ushort)this._objectIdGenerator.GenerateId();
+                Interlocked.Increment(ref this._playerCount);
+                break;
+            case NonPlayerCharacter npc:
+                npc.Id = (ushort)this._objectIdGenerator.GenerateId();
+                break;
+            case ISupportIdUpdate idUpdate:
+                idUpdate.Id = (ushort)this._objectIdGenerator.GenerateId();
+                break;
+            default:
+                throw new ArgumentException($"Adding an object of type {locateable.GetType()} is not supported.");
         }
 
+        this._objectsInMap.Add(locateable.Id, locateable);
         await this._areaOfInterestManager.AddObjectAsync(locateable).ConfigureAwait(false);
         if (this.ObjectAdded is { } eventHandler)
         {
@@ -208,15 +203,6 @@ public class GameMap
     public ValueTask MoveAsync(ILocateable locatable, Point target, AsyncLock moveLock, MoveType moveType)
     {
         return this._areaOfInterestManager.MoveObjectAsync(locatable, target, moveLock, moveType);
-    }
-
-    /// <summary>
-    /// Initializes a respawn for the specified locateable.
-    /// </summary>
-    /// <param name="locateable">The locateable.</param>
-    public async ValueTask InitRespawnAsync(ILocateable locateable)
-    {
-        await this._areaOfInterestManager.RemoveObjectAsync(locateable).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -248,7 +234,7 @@ public class GameMap
     /// <summary>
     /// Clears the drops on invalid terrain.
     /// </summary>
-    public async ValueTask ClearDropsOnInvalidTerrainAsync()
+    public async ValueTask ClearDropsOnInvalidTerrain()
     {
         var drops = this._objectsInMap.Values
             .OfType<DroppedItem>()

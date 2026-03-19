@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 public class ConfigurableIpResolver : IIpAddressResolver
 {
     private readonly ILoggerFactory _loggerFactory;
-    private readonly bool _allowRuntimeReconfiguration;
 
     private IpResolverType _resolverType;
     private string? _parameter;
@@ -25,15 +24,11 @@ public class ConfigurableIpResolver : IIpAddressResolver
     /// <param name="resolverType">Type of the resolver.</param>
     /// <param name="parameter">The parameter.</param>
     /// <param name="loggerFactory">The logger factory.</param>
-    /// <param name="allowRuntimeReconfiguration">
-    /// If set to <c>false</c>, calls to <see cref="Configure"/> are ignored after construction.
-    /// </param>
     /// <exception cref="System.ArgumentException">When using a custom resolver type, a parameter with an IP or host name is required. - parameter</exception>
-    public ConfigurableIpResolver(IpResolverType resolverType, string? parameter, ILoggerFactory loggerFactory, bool allowRuntimeReconfiguration = true)
+    public ConfigurableIpResolver(IpResolverType resolverType, string? parameter, ILoggerFactory loggerFactory)
     {
+        this.Configure(resolverType, parameter);
         this._loggerFactory = loggerFactory;
-        this._allowRuntimeReconfiguration = allowRuntimeReconfiguration;
-        this.ApplyConfiguration(resolverType, parameter, raiseEvent: false);
     }
 
     /// <summary>
@@ -55,16 +50,6 @@ public class ConfigurableIpResolver : IIpAddressResolver
     /// <param name="parameter">The parameter.</param>
     public void Configure(IpResolverType resolverType, string? parameter)
     {
-        if (!this._allowRuntimeReconfiguration)
-        {
-            return;
-        }
-
-        this.ApplyConfiguration(resolverType, parameter, raiseEvent: true);
-    }
-
-    private void ApplyConfiguration(IpResolverType resolverType, string? parameter, bool raiseEvent)
-    {
         if (resolverType == IpResolverType.Custom && string.IsNullOrWhiteSpace(parameter))
         {
             throw new ArgumentException("When using a custom resolver type, a parameter with an IP or host name is required.", nameof(parameter));
@@ -74,10 +59,7 @@ public class ConfigurableIpResolver : IIpAddressResolver
         this._resolverType = resolverType;
         this._parameter = parameter;
 
-        if (raiseEvent)
-        {
-            this.ConfigurationChanged?.Invoke(this, EventArgs.Empty);
-        }
+        this.ConfigurationChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private IIpAddressResolver CreateResolver()

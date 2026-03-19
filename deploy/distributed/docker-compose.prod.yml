@@ -1,3 +1,5 @@
+version: '3.4'
+
 volumes:
   certificates:
   certbot-www:
@@ -55,7 +57,7 @@ services:
     restart: "unless-stopped"
   dapr-placement:
     restart: "unless-stopped"
-  rabbit:
+  pubsub:
     restart: "unless-stopped"
   database:
     restart: "unless-stopped"

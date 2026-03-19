@@ -31,11 +31,6 @@ public partial class GameServerDefinition
     public float ExperienceRate { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether PVP is enabled on this server.
-    /// </summary>
-    public bool PvpEnabled { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets the server configuration.
     /// </summary>
     [Required]

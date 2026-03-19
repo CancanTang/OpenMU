@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for online state change packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ChangeOnlineStateHandlerPlugIn_Name), Description = nameof(PlugInResources.ChangeOnlineStateHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ChangeOnlineStateHandlerPlugIn", "Handler for online state change packets.")]
 [Guid("ff1d0b4e-4748-4ee0-b68e-f42b700c0f63")]
 internal class ChangeOnlineStateHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly ChangeOnlineStateAction _changeAction = new();
+    private readonly ChangeOnlineStateAction _changeAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

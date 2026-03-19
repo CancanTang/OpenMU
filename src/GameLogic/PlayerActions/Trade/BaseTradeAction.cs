@@ -56,7 +56,6 @@ public class BaseTradeAction
                 }
 
                 trader.Inventory.ItemStorage.Money = trader.BackupInventory.Money;
-                trader.BackupInventory = null;
             }
         }
 
@@ -78,14 +77,14 @@ public class BaseTradeAction
     /// Sends the message to the trader.
     /// </summary>
     /// <param name="trader">The trader.</param>
-    /// <param name="messageKey">The key of the message in <see cref="PlayerMessage"/>.</param>
-    protected async ValueTask SendMessageAsync(ITrader trader, string messageKey)
+    /// <param name="message">The message.</param>
+    protected async ValueTask SendMessageAsync(ITrader trader, string message)
     {
-        if (trader is Player player)
+        if (trader is IWorldObserver observer)
         {
             try
             {
-                await player.ShowLocalizedBlueMessageAsync(messageKey).ConfigureAwait(false);
+                await observer.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(message, MessageType.BlueNormal)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

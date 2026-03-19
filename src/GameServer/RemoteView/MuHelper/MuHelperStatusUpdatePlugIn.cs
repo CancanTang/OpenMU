@@ -1,4 +1,4 @@
-﻿// <copyright file="MuHelperStatusUpdatePlugIn.cs" company="MUnique">
+﻿// <copyright file="MuHelperStatusUpdatePlugin.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="MuHelperStatusUpdatePlugIn"/> which response with new mu bot status.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.MuHelperStatusUpdatePlugIn_Name), Description = nameof(PlugInResources.MuHelperStatusUpdatePlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(MuHelperStatusUpdatePlugIn), "Sends the MU Helper status update to the client.")]
 [Guid("6F2E1E5F-D130-496A-B2B0-5D01BD001366")]
 public class MuHelperStatusUpdatePlugIn : IMuHelperStatusUpdatePlugIn
 {

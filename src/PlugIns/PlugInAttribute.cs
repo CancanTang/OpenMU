@@ -9,4 +9,26 @@ namespace MUnique.OpenMU.PlugIns;
 /// May be helpful for debugging and the user interface.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public class PlugInAttribute : Attribute;
+public class PlugInAttribute : Attribute
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PlugInAttribute"/> class.
+    /// </summary>
+    /// <param name="name">The name.</param>
+    /// <param name="description">The description.</param>
+    public PlugInAttribute(string name, string description)
+    {
+        this.Name = name;
+        this.Description = description;
+    }
+
+    /// <summary>
+    /// Gets the name of the plugin.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the description of the plugin.
+    /// </summary>
+    public string Description { get; }
+}

@@ -4,9 +4,10 @@
 
 namespace MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 
-using MUnique.OpenMU.AttributeSystem;
-using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.Views;
+using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Pathfinding;
+using System.Xml.Linq;
 
 /// <summary>
 /// The base of every chat command plug in.
@@ -26,11 +27,12 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
     {
         try
         {
-            var arguments = await command.TryParseArgumentsAsync<T>(player).ConfigureAwait(false);
-            if (arguments is not null)
-            {
-                await this.DoHandleCommandAsync(player, arguments).ConfigureAwait(false);
-            }
+            var arguments = command.ParseArguments<T>();
+            await this.DoHandleCommandAsync(player, arguments).ConfigureAwait(false);
+        }
+        catch (ArgumentException argEx)
+        {
+            await this.ShowMessageToAsync(player, $"[{this.Key}] {argEx.Message}").ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -46,26 +48,31 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
     protected abstract ValueTask DoHandleCommandAsync(Player player, T arguments);
 
     /// <summary>
+    /// Shows a message to a player.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <param name="message">The message.</param>
+    /// <param name="messageType">The message type.</param>
+    protected ValueTask ShowMessageToAsync(Player player, string message, MessageType messageType = MessageType.BlueNormal)
+    {
+        return player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(message, messageType));
+    }
+
+    /// <summary>
     /// Gets a player by his character name.
     /// </summary>
     /// <param name="player">The player.</param>
     /// <param name="characterName">The character name.</param>
     /// <returns>The target player.</returns>
-    protected async ValueTask<Player?> GetPlayerByCharacterNameAsync(Player player, string characterName)
+    protected Player GetPlayerByCharacterName(Player player, string characterName)
     {
         if (string.IsNullOrWhiteSpace(characterName))
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.CharacterNameIsRequired)).ConfigureAwait(false);
-            return null;
+            throw new ArgumentException("Character name is required.");
         }
 
-        var result = player.GameContext.GetPlayerByCharacterName(characterName);
-        if (result is null)
-        {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.CharacterNotFound), characterName).ConfigureAwait(false);
-        }
-
-        return result;
+        return player.GameContext.GetPlayerByCharacterName(characterName)
+               ?? throw new ArgumentException($"Character {characterName} not found.");
     }
 
     /// <summary>
@@ -74,15 +81,14 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
     /// <param name="player">The player.</param>
     /// <param name="guildName">The guild name.</param>
     /// <returns>The guild id.</returns>
-    protected async ValueTask<uint?> GetGuildIdByNameAsync(Player player, string guildName)
+    protected async ValueTask<uint> GetGuildIdByNameAsync(Player player, string guildName)
     {
         var guildServer = (player.GameContext as IGameServerContext)!.GuildServer;
         var guildId = await guildServer.GetGuildIdByNameAsync(guildName).ConfigureAwait(false);
 
-        if (guildId == 0)
+        if (guildId == default)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.GuildNotFound), guildName).ConfigureAwait(false);
-            return null;
+            throw new ArgumentException($"Guild {guildName} not found.");
         }
 
         return guildId;
@@ -95,29 +101,21 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
     /// <param name="map">The name or id of the map.</param>
     /// <param name="coordinates">The coordinates X and Y.</param>
     /// <returns>The ExitGate.</returns>
-    protected async ValueTask<ExitGate?> GetExitGateAsync(Player gameMaster, string map, Point coordinates)
+    protected async ValueTask<ExitGate> GetExitGateAsync(Player gameMaster, string map, Point coordinates)
     {
-        if (coordinates == default)
+        if (coordinates.X == default && coordinates.Y == default)
         {
-            var result = this.GetWarpInfo(gameMaster, map)?.Gate;
-            if (result is null)
-            {
-                await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MapNotFound), map).ConfigureAwait(false);
-            }
-
-            return result;
+            return this.GetWarpInfo(gameMaster, map)?.Gate
+                   ?? throw new ArgumentException($"Map {map} not found.");
         }
 
         var mapDefinition = ushort.TryParse(map, out var mapId)
             ? (await gameMaster.GameContext.GetMapAsync(mapId).ConfigureAwait(false))?.Definition
-            : gameMaster.GameContext.Configuration.Maps.FirstOrDefault(x =>
-                x.Name.GetTranslationAsSpan(gameMaster.Culture).Equals(map, StringComparison.OrdinalIgnoreCase)
-                || x.Name.ValueInNeutralLanguageAsSpan.Equals(map, StringComparison.OrdinalIgnoreCase));
+            : gameMaster.GameContext.Configuration.Maps.FirstOrDefault(x => x.Name.Equals(map, StringComparison.OrdinalIgnoreCase));
 
-        if (mapDefinition is null)
+        if (mapDefinition == null)
         {
-            await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MapNotFound), map).ConfigureAwait(false);
-            return null;
+            throw new ArgumentException($"Map {map} not found.");
         }
 
         return new ExitGate
@@ -141,7 +139,7 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
         var warpList = player.GameContext.Configuration.WarpList;
         return ushort.TryParse(map, out var mapId)
             ? warpList.FirstOrDefault(info => info.Gate?.Map?.Number == mapId)
-            : warpList.FirstOrDefault(info => map.Equals(info.Name.GetTranslationAsSpan(player.Culture), StringComparison.CurrentCultureIgnoreCase));
+            : warpList.FirstOrDefault(info => info.Name.Equals(map, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -150,16 +148,14 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
     /// <param name="gameMaster">GameMaster Player.</param>
     /// <param name="name">Name of character to be changed.</param>
     /// <param name="accountState">New <see cref="AccountState"/>.</param>
-    /// <returns>Flag, if successful.</returns>
-    protected async ValueTask<bool> TryChangeAccountStateByCharacterNameAsync(Player gameMaster, string? name, AccountState accountState)
+    protected ValueTask ChangeAccountStateByCharacterNameAsync(Player gameMaster, string? name, AccountState accountState)
     {
         if (string.IsNullOrEmpty(name))
         {
-            await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.CharacterNameIsRequired)).ConfigureAwait(false);
-            return false;
+            throw new ArgumentException($"{nameof(name)} is required.");
         }
 
-        return await this.ChangeAccountStateAsync(gameMaster, context => context.GetAccountByCharacterNameAsync(name), accountState).ConfigureAwait(false);
+        return this.ChangeAccountStateAsync(gameMaster, (MUnique.OpenMU.Persistence.IPlayerContext context) => context.GetAccountByCharacterNameAsync(name), accountState);
     }
 
     /// <summary>
@@ -168,15 +164,14 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
     /// <param name="gameMaster">GameMaster Player.</param>
     /// <param name="loginName">Login from account to be changed.</param>
     /// <param name="accountState">New <see cref="AccountState"/>.</param>
-    protected async ValueTask<bool> ChangeAccountStateByLoginNameAsync(Player gameMaster, string? loginName, AccountState accountState)
+    protected ValueTask ChangeAccountStateByLoginNameAsync(Player gameMaster, string? loginName, AccountState accountState)
     {
         if (string.IsNullOrEmpty(loginName))
         {
-            await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.LoginNameRequired)).ConfigureAwait(false);
-            return false;
+            throw new ArgumentException($"{nameof(loginName)} is required.");
         }
 
-        return await this.ChangeAccountStateAsync(gameMaster, context => context.GetAccountByLoginNameAsync(loginName), accountState).ConfigureAwait(false);
+        return this.ChangeAccountStateAsync(gameMaster, (MUnique.OpenMU.Persistence.IPlayerContext context) => context.GetAccountByLoginNameAsync(loginName), accountState);
     }
 
     /// <summary>
@@ -184,80 +179,43 @@ public abstract class ChatCommandPlugInBase<T> : IChatCommandPlugIn
     /// </summary>
     /// <param name="player">Player to be banned/unbanned.</param>
     /// <param name="chatBanUntil">Date and time until which the chat ban is in effect.</param>
-    protected async ValueTask<bool> ChangeAccountChatBanUntilAsync(Player player, DateTime? chatBanUntil)
+    protected async ValueTask ChangeAccountChatBanUntilAsync(Player player, DateTime? chatBanUntil)
     {
-        if (player.Account == null)
+        if (player.Account != null)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.AccountNotFound)).ConfigureAwait(false);
-            return false;
+            player.Account.ChatBanUntil = chatBanUntil;
         }
-
-        player.Account.ChatBanUntil = chatBanUntil;
-        return true;
+        else
+        {
+            throw new ArgumentException($"{nameof(player.Account)} not found.");
+        }
     }
 
-    /// <summary>
-    /// Tries to get the stat attribute of the player.
-    /// </summary>
-    /// <param name="player">The player.</param>
-    /// <param name="statType">Type of the stat.</param>
-    /// <returns>The found stat attribute, or <see langword="null"/>.</returns>
-    protected async ValueTask<AttributeDefinition?> TryGetAttributeAsync(Player player, string? statType)
-    {
-        if (player.SelectedCharacter is not { } selectedCharacter)
-        {
-            return null;
-        }
-
-        var attribute = statType switch
-        {
-            "str" => Stats.BaseStrength,
-            "agi" => Stats.BaseAgility,
-            "vit" => Stats.BaseVitality,
-            "ene" => Stats.BaseEnergy,
-            "cmd" => Stats.BaseLeadership,
-            _ => null,
-        };
-        if (attribute is null)
-        {
-            await player.ShowLocalizedBlueMessageAsync(PlayerMessage.UnknownAttribute, statType).ConfigureAwait(false);
-            return null;
-        }
-
-        if (selectedCharacter.Attributes.All(sa => sa.Definition != attribute))
-        {
-            await player.ShowLocalizedBlueMessageAsync(PlayerMessage.CharacterHasNoStatAttribute, statType).ConfigureAwait(false);
-            return null;
-        }
-
-        return attribute;
-    }
-
-    private async ValueTask<bool> ChangeAccountStateAsync(Player gameMaster, Func<MUnique.OpenMU.Persistence.IPlayerContext, ValueTask<Account?>> accountSelector, AccountState accountState)
+    private async ValueTask ChangeAccountStateAsync(Player gameMaster, Func<MUnique.OpenMU.Persistence.IPlayerContext, ValueTask<Account?>> accountSelector, AccountState accountState)
     {
         using var context = gameMaster.GameContext.PersistenceContextProvider.CreateNewPlayerContext(gameMaster.GameContext.Configuration);
         var account = await accountSelector(context).ConfigureAwait(false);
 
-        if (account == null)
+        if (account != null)
         {
-            await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.AccountNotFound)).ConfigureAwait(false);
-            return false;
-        }
-
-        foreach (var character in account.Characters)
-        {
-            var player = gameMaster.GameContext.GetPlayerByCharacterName(character.Name ?? string.Empty);
-
-            // disconnect to change account
-            if (player != null)
+            foreach (var character in account.Characters)
             {
-                await player.DisconnectAsync().ConfigureAwait(false);
-                break;
-            }
-        }
+                var player = gameMaster.GameContext.GetPlayerByCharacterName(character.Name ?? string.Empty);
 
-        account.State = accountState;
-        await context.SaveChangesAsync().ConfigureAwait(false);
-        return true;
+                // disconect to change account
+                if (player != null)
+                {
+                    await player.DisconnectAsync().ConfigureAwait(false);
+                    break;
+                }
+            }
+
+            account.State = accountState;
+            await context.SaveChangesAsync().ConfigureAwait(false);
+        }
+        else
+        {
+            throw new ArgumentException($"account not found.");
+        }
     }
 }

@@ -13,22 +13,6 @@ internal enum MagicEffectNumber : short
     #region Artificial effects which don't end up as an actual magic effect, but regenerate something
 
     /// <summary>
-    /// The Beast Uppercut skill effect number.
-    /// </summary>
-    /// <remarks>
-    /// Internal. Proxy of <see cref="DefenseReduction"/>.
-    /// </remarks>
-    DefenseReductionBeastUppercut = -5,
-
-    /// <summary>
-    /// The Weakness (Summoner) skill effect number.
-    /// </summary>
-    /// <remarks>
-    /// Internal. Proxy of <see cref="Weakness"/>.
-    /// </remarks>
-    WeaknessSummoner = -4,
-
-    /// <summary>
     /// The shield recover skill effect number.
     /// </summary>
     /// <remarks>
@@ -252,16 +236,6 @@ internal enum MagicEffectNumber : short
     Blind = 0x49,
 
     /// <summary>
-    /// The weakness effect, which decreases the physical damage.
-    /// </summary>
-    Weakness = 0x4C,
-
-    /// <summary>
-    /// The innovation effect, which decreases the defense.
-    /// </summary>
-    Innovation = 0x4D,
-
-    /// <summary>
     /// The cherry blossom wine effect (+ 700 Mana).
     /// </summary>
     CherryBlossomWine = 0x4E,
@@ -275,11 +249,6 @@ internal enum MagicEffectNumber : short
     /// The cherry blossom flower petal effect (+ 40 dmg).
     /// </summary>
     CherryBlossomFlowerPetal = 0x50,
-
-    /// <summary>
-    /// The berserker buff effect.
-    /// </summary>
-    Berserker = 0x51,
 
     /// <summary>
     /// The wiz enhance effect.
@@ -302,11 +271,6 @@ internal enum MagicEffectNumber : short
     IncreaseBlock = 131,
 
     /// <summary>
-    /// The decrease block effect of the rage fighter.
-    /// </summary>
-    DecreaseBlock = 132,
-
-    /// <summary>
     /// The wiz enhance strengthener effect.
     /// </summary>
     WizEnhance2 = 138,
@@ -325,11 +289,6 @@ internal enum MagicEffectNumber : short
     /// Internal.
     /// </remarks>
     ShieldSkill = 200,
-
-    /// <summary>
-    /// The alcohol effect number.
-    /// </summary>
-    Alcohol = 201,
 
     #endregion
 

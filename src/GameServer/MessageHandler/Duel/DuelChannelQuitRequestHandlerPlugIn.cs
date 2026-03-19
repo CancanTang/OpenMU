@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for duel channel quit request packets (new duel system), which is sent by a spectator.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DuelChannelQuitRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.DuelChannelQuitRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(DuelChannelQuitRequestHandlerPlugIn), "Handler for duel channel quit request packets (new duel system), which is sent by a spectator.")]
 [Guid("47E7FBBD-F5FE-41D1-8086-934D4DE86828")]
 [MinimumClient(4, 0, ClientLanguage.Invariant)]
 [BelongsToGroup(DuelGroupHandlerPlugIn.GroupKey)]

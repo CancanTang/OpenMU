@@ -6,7 +6,9 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.ItemConsumeActions;
 
 using System.ComponentModel;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
+using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Action to consume an item.
@@ -47,7 +49,7 @@ public class ItemConsumeAction
         if (consumeHandler is null)
         {
             await player.InvokeViewPlugInAsync<IRequestedItemConsumptionFailedPlugIn>(p => p.RequestedItemConsumptionFailedAsync()).ConfigureAwait(false);
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.UsingThisItemNotImplemented)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Using this item is not implemented.", MessageType.BlueNormal)).ConfigureAwait(false);
             return;
         }
 

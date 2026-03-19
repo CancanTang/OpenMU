@@ -7,17 +7,16 @@ namespace MUnique.OpenMU.GameServer.RemoteView.Character;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
-using MUnique.OpenMU.GameLogic.Properties;
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Character;
+using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Network.Packets.ServerToClient;
 using MUnique.OpenMU.PlugIns;
-using PlugInResources = MUnique.OpenMU.GameServer.Properties.PlugInResources;
 
 /// <summary>
 /// The default implementation of the <see cref="IUpdateLevelPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.UpdateLevelPlugIn_Name), Description = nameof(PlugInResources.UpdateLevelPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("UpdateLevelPlugIn", "The default implementation of the IUpdateLevelPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("1ff3709e-d99b-4c00-b926-efce281b3997")]
 public class UpdateLevelPlugIn : IUpdateLevelPlugIn
 {
@@ -52,7 +51,7 @@ public class UpdateLevelPlugIn : IUpdateLevelPlugIn
             (ushort)selectedCharacter.UsedNegFruitPoints,
             selectedCharacter.GetMaximumFruitPoints()).ConfigureAwait(false);
 
-        await this._player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.LevelUpCongrats), charStats[Stats.Level]).ConfigureAwait(false);
+        await this._player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync($"Congratulations, you are Level {charStats[Stats.Level]} now.", MessageType.BlueNormal)).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -76,6 +75,6 @@ public class UpdateLevelPlugIn : IUpdateLevelPlugIn
             (ushort)charStats[Stats.MaximumShield],
             (ushort)charStats[Stats.MaximumAbility]).ConfigureAwait(false);
 
-        await this._player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MasterLevelUpCongrats), charStats[Stats.MasterLevel]).ConfigureAwait(false);
+        await this._player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync($"Congratulations, you are Master Level {charStats[Stats.MasterLevel]} now.", MessageType.BlueNormal)).ConfigureAwait(false);
     }
 }

@@ -1,11 +1,9 @@
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 WORKDIR /app
 EXPOSE 8080
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /src
-COPY ["Directory.Packages.props", "."]
-COPY ["Directory.Build.props", "."]
 COPY ["Dapr/GameServer.Host/MUnique.OpenMU.GameServer.Host.csproj", "Dapr/GameServer.Host/"]
 RUN dotnet restore "Dapr/GameServer.Host/MUnique.OpenMU.GameServer.Host.csproj"
 COPY . .
@@ -19,5 +17,4 @@ FROM base AS final
 
 WORKDIR /app
 COPY --from=publish /app/publish .
-USER $APP_UID
 ENTRYPOINT ["dotnet", "MUnique.OpenMU.GameServer.Host.dll"]

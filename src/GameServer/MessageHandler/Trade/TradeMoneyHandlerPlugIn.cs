@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handles the trade money packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.TradeMoneyHandlerPlugIn_Name), Description = nameof(PlugInResources.TradeMoneyHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("TradeMoneyHandlerPlugIn", "Handles the trade money packets.")]
 [Guid("3c18f0ca-4ad8-4e07-a111-0acbe81256ca")]
 internal class TradeMoneyHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly TradeMoneyAction _tradeAction = new();
+    private readonly TradeMoneyAction _tradeAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

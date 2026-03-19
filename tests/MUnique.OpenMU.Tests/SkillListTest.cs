@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.Tests;
 
 using Moq;
-using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
@@ -18,8 +17,7 @@ public class SkillListTest
 {
     private const ushort LearnedSkillId = 10;
     private const ushort NonLearnedSkillId = 999;
-    private const ushort QualifiedItemSkillId = 1;
-    private const ushort NonQualifiedItemSkillId = 9;
+    private const ushort ItemSkillId = 1;
 
     /// <summary>
     /// Tests if the created skill list contains a skill that was learned by the character before.
@@ -34,18 +32,30 @@ public class SkillListTest
     }
 
     /// <summary>
-    /// Tests if the skill of an item is or isn't getting added to the skill list, depending if it's suitable to the character's class.
+    /// Tests if skills of equipped items are getting added to the skill list.
     /// </summary>
     [Test]
-    public async ValueTask ItemSkillAddedAsync()
+    public async ValueTask ItemSkillAsync()
+    {
+        var player = await TestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var item = this.CreateItemWithSkill();
+        item.Durability = 1;
+        await player.Inventory!.AddItemAsync(0, item).ConfigureAwait(false);
+        var skillList = new SkillList(player);
+        Assert.That(skillList.ContainsSkill(ItemSkillId), Is.True);
+    }
+
+    /// <summary>
+    /// Tests if the skill of an item that gets equipped afterwards, is getting added to the skill list.
+    /// </summary>
+    [Test]
+    public async ValueTask ItemSkillAddedLaterAsync()
     {
         var player = await TestHelper.CreatePlayerAsync().ConfigureAwait(false);
         var skillList = player.SkillList as SkillList;
-        await player.Inventory!.AddItemAsync(0, this.CreateItemWithSkill(QualifiedItemSkillId, player.SelectedCharacter!.CharacterClass)).ConfigureAwait(false);
-        await player.Inventory!.AddItemAsync(1, this.CreateItemWithSkill(NonQualifiedItemSkillId)).ConfigureAwait(false);
+        await player.Inventory!.AddItemAsync(0, this.CreateItemWithSkill()).ConfigureAwait(false);
 
-        Assert.That(skillList!.ContainsSkill(QualifiedItemSkillId), Is.True);
-        Assert.That(skillList!.ContainsSkill(NonQualifiedItemSkillId), Is.False);
+        Assert.That(skillList!.ContainsSkill(ItemSkillId), Is.True);
     }
 
     /// <summary>
@@ -55,12 +65,12 @@ public class SkillListTest
     public async ValueTask ItemSkillRemovedAsync()
     {
         var player = await TestHelper.CreatePlayerAsync().ConfigureAwait(false);
-        var item = this.CreateItemWithSkill(QualifiedItemSkillId, player.SelectedCharacter!.CharacterClass);
+        var item = this.CreateItemWithSkill();
         item.Durability = 1;
         await player.Inventory!.AddItemAsync(0, item).ConfigureAwait(false);
         var skillList = new SkillList(player);
         Assert.That(await skillList.RemoveItemSkillAsync(item.Definition!.Skill!.Number.ToUnsigned()).ConfigureAwait(false), Is.True);
-        Assert.That(skillList.ContainsSkill(QualifiedItemSkillId), Is.False);
+        Assert.That(skillList.ContainsSkill(ItemSkillId), Is.False);
     }
 
     /// <summary>
@@ -73,28 +83,23 @@ public class SkillListTest
         Assert.That(player.SkillList!.ContainsSkill(NonLearnedSkillId), Is.False);
     }
 
-    private Item CreateItemWithSkill(ushort skillId, CharacterClass? qualifiedClass = null)
+    private Item CreateItemWithSkill()
     {
-        var itemDefinition = new Mock<ItemDefinition>();
-        itemDefinition.SetupAllProperties();
-
-        var skillDefinition = new Mock<Skill>();
-        skillDefinition.Object.Number = skillId.ToSigned();
-        skillDefinition.Setup(sd => sd.QualifiedCharacters).Returns(new List<CharacterClass>());
-        if (qualifiedClass is not null)
+        var definition = new Mock<ItemDefinition>();
+        definition.SetupAllProperties();
+        definition.Object.Skill = new OpenMU.DataModel.Configuration.Skill
         {
-            skillDefinition.Object.QualifiedCharacters.Add(qualifiedClass);
-        }
+            Number = ItemSkillId.ToSigned(),
+        };
 
-        itemDefinition.Object.Skill = skillDefinition.Object;
-        itemDefinition.Object.Height = 1;
-        itemDefinition.Object.Width = 1;
-        itemDefinition.Setup(d => d.BasePowerUpAttributes).Returns(new List<ItemBasePowerUpDefinition>());
+        definition.Object.Height = 1;
+        definition.Object.Width = 1;
+        definition.Setup(d => d.BasePowerUpAttributes).Returns(new List<ItemBasePowerUpDefinition>());
 
         var item = new Item
         {
             HasSkill = true,
-            Definition = itemDefinition.Object,
+            Definition = definition.Object,
         };
         return item;
     }

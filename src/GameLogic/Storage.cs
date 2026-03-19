@@ -4,8 +4,6 @@
 
 namespace MUnique.OpenMU.GameLogic;
 
-using MUnique.OpenMU.DataModel.Configuration.Items;
-
 /// <summary>
 /// This class wraps the access to the IItemStorage of an character.
 /// </summary>
@@ -71,10 +69,6 @@ public class Storage : IStorage
             if (freeSlot is not null && this.ContainsSlot(freeSlot.Value) && this.AddItem(freeSlot.Value, item))
             {
                 unfittingItems.RemoveAt(index);
-                if (this.ItemStorage.Items.Count(i => item == i) > 1)
-                {
-                    this.ItemStorage.Items.Remove(item);
-                }
             }
         }
 
@@ -102,6 +96,7 @@ public class Storage : IStorage
             {
                 for (int column = 0; column < InventoryConstants.RowSize; column++)
                 {
+
                     if (!this._usedSlots[row, column])
                     {
                         yield return this.GetSlot(column, row);
@@ -264,20 +259,6 @@ public class Storage : IStorage
 
         var extension = this.Extensions.FirstOrDefault(ext => ext.ContainsSlot(inventorySlot));
         return extension?.GetItem(inventorySlot);
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<Item> FindItemsByDefinition(ItemDefinition definition)
-    {
-        var primaryMatches = this.ItemArray
-            .Where(i => i != null && i.Definition == definition)
-            .Select(i => i!);
-
-        var extensionMatches = this.Extensions?
-            .SelectMany(extension => extension.FindItemsByDefinition(definition))
-            ?? Enumerable.Empty<Item>();
-
-        return primaryMatches.Concat(extensionMatches);
     }
 
     /// <inheritdoc/>

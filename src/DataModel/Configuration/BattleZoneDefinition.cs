@@ -54,10 +54,4 @@ public partial class BattleZoneDefinition
     /// </summary>
     [MemberOfAggregate]
     public virtual Rectangle? RightGoal { get; set; }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"Battle Zone ({this.Type})";
-    }
 }

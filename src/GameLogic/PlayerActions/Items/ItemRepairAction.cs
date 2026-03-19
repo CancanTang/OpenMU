@@ -30,7 +30,7 @@ public class ItemRepairAction
         var item = player.Inventory?.GetItem(slot);
         if (item is null)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.NoItemToRepair)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("No Item there to repair.", MessageType.BlueNormal)).ConfigureAwait(false);
             player.Logger.LogWarning("RepairItem: Player {0}, Itemslot {1} not filled", player.SelectedCharacter?.Name, slot);
             return;
         }
@@ -47,7 +47,7 @@ public class ItemRepairAction
         }
         else
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.NotEnoughMoneyToRepair)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("You don't have enough money to repair.", MessageType.BlueNormal)).ConfigureAwait(false);
         }
     }
 
@@ -56,7 +56,7 @@ public class ItemRepairAction
     /// </summary>
     /// <param name="player">The player.</param>
     /// <remarks>
-    /// The client calculates a sum based on all items in the inventory, even those which are not equipped.
+    /// The client calculates a sum based on all items in the inventory, even these which are not equipped.
     /// However, it should really just repair the equipped ones.
     /// </remarks>
     public async ValueTask RepairAllItemsAsync(Player player)
@@ -94,7 +94,7 @@ public class ItemRepairAction
             }
             else
             {
-                await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.NotEnoughMoneyToRepair)).ConfigureAwait(false);
+                await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("You don't have enough money to repair.", MessageType.BlueNormal)).ConfigureAwait(false);
                 break;
             }
         }

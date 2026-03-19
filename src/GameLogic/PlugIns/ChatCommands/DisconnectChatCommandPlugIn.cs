@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 
 using System.Runtime.InteropServices;
+using Nito.AsyncEx.Synchronous;
 using MUnique.OpenMU.GameLogic.PlugIns.ChatCommands.Arguments;
 using MUnique.OpenMU.PlugIns;
 
@@ -12,9 +13,8 @@ using MUnique.OpenMU.PlugIns;
 /// A chat command plugin which handles disconnect commands.
 /// </summary>
 [Guid("B5E0F108-9E55-48F6-A7A8-220BFAEF2F3E")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DisconnectChatCommandPlugIn_Name), Description = nameof(PlugInResources.DisconnectChatCommandPlugIn_Description), ResourceType = typeof(PlugInResources))]
-[ChatCommandHelp(Command, typeof(DisconnectChatCommandArgs), CharacterStatus.GameMaster)]
+[PlugIn("Disconnect chat command", "Handles the chat command '/disconnect <char>'. Disconnects a player from the game server.")]
+[ChatCommandHelp(Command, "Disconnects a player from the game server.", typeof(DisconnectChatCommandArgs), CharacterStatus.GameMaster)]
 public class DisconnectChatCommandPlugIn : ChatCommandPlugInBase<DisconnectChatCommandArgs>
 {
     private const string Command = "/disconnect";
@@ -28,17 +28,12 @@ public class DisconnectChatCommandPlugIn : ChatCommandPlugInBase<DisconnectChatC
     /// <inheritdoc />
     protected override async ValueTask DoHandleCommandAsync(Player gameMaster, DisconnectChatCommandArgs arguments)
     {
-        var player = await this.GetPlayerByCharacterNameAsync(gameMaster, arguments.CharacterName ?? string.Empty).ConfigureAwait(false);
-        if (player is null)
-        {
-            return;
-        }
-
+        var player = this.GetPlayerByCharacterName(gameMaster, arguments.CharacterName ?? string.Empty);
         await player.DisconnectAsync().ConfigureAwait(false);
 
         if (!player.Name.Equals(gameMaster.Name))
         {
-            await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.CommandResultPlayerDisconnected), this.Key, player.Name).ConfigureAwait(false);
+            await this.ShowMessageToAsync(gameMaster, $"[{this.Key}] {player.Name} has been disconnected.").ConfigureAwait(false);
         }
     }
 }

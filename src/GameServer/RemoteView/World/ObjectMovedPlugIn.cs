@@ -20,8 +20,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IObjectMovedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ObjectMovedPlugIn_Name), Description = nameof(PlugInResources.ObjectMovedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(ObjectMovedPlugIn), "The default implementation of the IObjectMovedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("29ee689f-636c-47e7-a930-b60ce8e8993c")]
 [MinimumClient(1, 0, ClientLanguage.Invariant)]
 public class ObjectMovedPlugIn : IObjectMovedPlugIn
@@ -86,12 +85,11 @@ public class ObjectMovedPlugIn : IObjectMovedPlugIn
     /// </summary>
     /// <param name="connection">The connection.</param>
     /// <param name="objectId">The object identifier.</param>
-    /// <param name="sourcePoint">The origin point.</param>
     /// <param name="targetPoint">The target point.</param>
     /// <param name="steps">The steps.</param>
     /// <param name="rotation">The rotation.</param>
     /// <param name="stepsLength">Length of the steps.</param>
-    protected virtual async ValueTask SendWalkAsync(IConnection connection, ushort objectId, Point sourcePoint, Point targetPoint, Memory<Direction> steps, Direction rotation, int stepsLength)
+    protected virtual async ValueTask SendWalkAsync(IConnection connection, ushort objectId, Point targetPoint, Memory<Direction> steps, Direction rotation, int stepsLength)
     {
         int Write()
         {
@@ -158,7 +156,7 @@ public class ObjectMovedPlugIn : IObjectMovedPlugIn
             targetPoint = obj.Position;
         }
 
-        await this.SendWalkAsync(connection, objectId, obj.Position, targetPoint, steps, rotation, stepsLength).ConfigureAwait(false);
+        await this.SendWalkAsync(connection, objectId, targetPoint, steps, rotation, stepsLength).ConfigureAwait(false);
     }
 
     private void SetStepData(ObjectWalkedRef walkPacket, Span<Direction> steps, int stepsSize)
@@ -200,7 +198,7 @@ public class ObjectMovedPlugIn : IObjectMovedPlugIn
         }
     }
 
-    protected byte GetWalkCode()
+    private byte GetWalkCode()
     {
         if (this._player.ClientVersion.Season == 0)
         {

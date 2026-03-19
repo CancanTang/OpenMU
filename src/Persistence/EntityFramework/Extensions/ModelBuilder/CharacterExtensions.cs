@@ -21,12 +21,7 @@ internal static class CharacterExtensions
     {
         builder.Property(character => character.Name).HasMaxLength(10).IsRequired();
         builder.HasIndex(character => character.Name).IsUnique();
-
-        if (builder.Metadata.FindNavigation(nameof(Character.RawCharacterClass)) is { } navigation)
-        {
-            navigation.ForeignKey.IsRequired = true;
-        }
-
+        builder.Metadata.FindNavigation(nameof(Character.RawCharacterClass))!.ForeignKey.IsRequired = true;
         builder.Property(character => character.CharacterSlot).IsRequired();
         builder.HasMany(character => character.RawLetters).WithOne(letter => letter.Receiver!).OnDelete(DeleteBehavior.Cascade);
     }
@@ -37,7 +32,6 @@ internal static class CharacterExtensions
     /// <param name="builder">The builder.</param>
     public static void Apply(this EntityTypeBuilder<CharacterClass> builder)
     {
-        builder.Property(p => p.Name).HasConversion(LocalizedStringConverter.Instance);
         builder.HasMany(c => c.RawBaseAttributeValues)
             .WithOne(c => c.CharacterClass!);
     }

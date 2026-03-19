@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// Consume handler for large complex potions.
 /// </summary>
 [Guid("F5A8C0C4-7960-4815-83C2-F57339CD6FE2")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LargeComplexPotionConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.LargeComplexPotionConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(LargeComplexPotionConsumeHandlerPlugIn), "Plugin which handles the large complex potion consumption.")]
 public class LargeComplexPotionConsumeHandlerPlugIn : ComplexPotionConsumeHandlerPlugIn
 {
     /// <summary>

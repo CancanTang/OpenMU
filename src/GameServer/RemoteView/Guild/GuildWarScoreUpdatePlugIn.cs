@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IGuildWarScoreUpdatePlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.GuildWarScoreUpdatePlugIn_Name), Description = nameof(PlugInResources.GuildWarScoreUpdatePlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(IGuildWarScoreUpdatePlugIn), "The default implementation of the IGuildWarScoreUpdatePlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("24E5E0C1-DAE7-4E34-810D-C622F8F9B70F")]
 public class GuildWarScoreUpdatePlugIn : IGuildWarScoreUpdatePlugIn
 {

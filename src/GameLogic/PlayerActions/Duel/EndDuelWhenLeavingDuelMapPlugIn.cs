@@ -11,19 +11,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Ends the duel when a player leaves the duel map.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.EndDuelWhenLeavingDuelMapPlugIn_Name), Description = nameof(PlugInResources.EndDuelWhenLeavingDuelMapPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(EndDuelWhenLeavingDuelMapPlugIn), "Updates the state of the weather of each hosted map in a random way.")]
 [Guid("3DF85180-4C51-437A-8072-8F42EEFED983")]
 public class EndDuelWhenLeavingDuelMapPlugIn : IObjectRemovedFromMapPlugIn
 {
     private readonly DuelActions _duelActions = new();
 
-    /// <summary>
-    /// Handles the logic for when a player leaves the duel map.
-    /// </summary>
-    /// <param name="map">The game map.</param>
-    /// <param name="removedObject">The player who left.</param>
-    /// <returns>The value task with the result.</returns>
     public async ValueTask ObjectRemovedFromMapAsync(GameMap map, ILocateable removedObject)
     {
         if (removedObject is not Player player)
@@ -40,11 +33,10 @@ public class EndDuelWhenLeavingDuelMapPlugIn : IObjectRemovedFromMapPlugIn
         var removedFromDuelMap = duelRoom.Area.FirstPlayerGate?.Map == map.Definition;
         if (removedFromDuelMap
             && duelRoom.IsDuelist(player)
-            && duelRoom.State is (DuelState.DuelStarted or DuelState.DuelAccepted)
+            && duelRoom.State is DuelState.DuelStarted
             && player.IsAlive)
         {
             await duelRoom.CancelDuelAsync().ConfigureAwait(false);
-            
             return;
         }
 

@@ -33,11 +33,6 @@ public interface IGameContext
     float ExperienceRate { get; }
 
     /// <summary>
-    /// Gets a value indicating whether PVP is enabled.
-    /// </summary>
-    bool PvpEnabled { get; }
-
-    /// <summary>
     /// Gets the repository provider. Used to retrieve data, e.g. from a database.
     /// </summary>
     IPersistenceContextProvider PersistenceContextProvider { get; }
@@ -103,7 +98,7 @@ public interface IGameContext
     DuelRoomManager DuelRoomManager { get; }
 
     /// <summary>
-    /// Gets the state of the active self defenses. The datetime holds the timestamp when self-defense ends.
+    /// Gets the state of the active self defenses.
     /// </summary>
     ConcurrentDictionary<(Player Attacker, Player Defender), DateTime> SelfDefenseState { get; }
 
@@ -162,14 +157,6 @@ public interface IGameContext
     /// <param name="message">The message.</param>
     /// <param name="messageType">Type of the message.</param>
     ValueTask SendGlobalMessageAsync(string message, MessageType messageType);
-
-    /// <summary>
-    /// Sends a global message to all players of the game with the specified message type.
-    /// </summary>
-    /// <param name="messageType">Type of the message.</param>
-    /// <param name="messageKey">The message resource key.</param>
-    /// <param name="arguments">The parameters for the message.</param>
-    ValueTask ShowGlobalLocalizedMessageAsync(MessageType messageType, string messageKey, params object?[] arguments);
 
     /// <summary>
     /// Sends a global chat message to all players of the game with the specified message type.

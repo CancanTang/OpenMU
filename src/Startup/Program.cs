@@ -26,7 +26,6 @@ using MUnique.OpenMU.LoginServer;
 using MUnique.OpenMU.Network;
 using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.Persistence.EntityFramework;
-using MUnique.OpenMU.Persistence.EntityFramework.Json;
 using MUnique.OpenMU.Persistence.Initialization;
 using MUnique.OpenMU.Persistence.Initialization.Version075;
 using MUnique.OpenMU.Persistence.InMemory;
@@ -35,7 +34,6 @@ using MUnique.OpenMU.Web.AdminPanel;
 using MUnique.OpenMU.Web.AdminPanel.Services;
 using MUnique.OpenMU.Web.API;
 using MUnique.OpenMU.Web.Map.Map;
-using MUnique.OpenMU.Web.Shared;
 using Nito.AsyncEx.Synchronous;
 using Serilog;
 using Serilog.Debugging;
@@ -130,21 +128,12 @@ internal sealed class Program : IDisposable
     /// <param name="args">The command line args.</param>
     public async Task InitializeAsync(string[] args)
     {
-        JsonConverterRegistry.RegisterConverter(new LocalizedStringJsonConverter());
-        JsonConverterRegistry.RegisterConverter(new BinaryAsHexJsonConverter());
-
         this._logger.Information("Creating host...");
         this._serverHost = await this.CreateHostAsync(args).ConfigureAwait(false);
 
         var autoStart = _systemConfiguration?.AutoStart is true
                         || args.Contains("-autostart")
                         || !this.IsAdminPanelEnabled(args);
-
-        if (_systemConfiguration is { }
-            && this._serverHost.Services.GetService<IIpAddressResolver>() is ConfigurableIpResolver resolver)
-        {
-            resolver.Configure(_systemConfiguration.IpResolver, _systemConfiguration.IpResolverParameter);
-        }
 
         if (autoStart)
         {
@@ -271,9 +260,6 @@ internal sealed class Program : IDisposable
             .AddSingleton<IChatServer>(s => s.GetService<ChatServer>()!)
             .AddSingleton<ConnectServerFactory>()
             .AddSingleton<ConnectServerContainer>()
-            .AddSingleton<IConnectServerInstanceManager>(provider => provider.GetService<ConnectServerContainer>()!)
-            .AddSingleton<GameServerContainer>()
-            .AddSingleton<IGameServerInstanceManager>(provider => provider.GetService<GameServerContainer>()!)
             .AddScoped<IMapFactory, JavascriptMapFactory>()
             .AddSingleton<SetupService>()
             .AddSingleton<IEnumerable<IConnectServer>>(provider => provider.GetService<ConnectServerContainer>() ?? throw new Exception($"{nameof(ConnectServerContainer)} not registered."))
@@ -296,7 +282,6 @@ internal sealed class Program : IDisposable
             .AddSingleton<IDataSource<GameConfiguration>, GameConfigurationDataSource>()
             .AddHostedService<ChatServerContainer>()
             .AddHostedService<GameServerContainer>()
-            .AddHostedService(provider => provider.GetService<GameServerContainer>()!)
             .AddHostedService(provider => provider.GetService<ConnectServerContainer>()!)
             .AddControllers().AddApplicationPart(typeof(ServerController).Assembly);
 
@@ -335,7 +320,7 @@ internal sealed class Program : IDisposable
     private ICollection<PlugInConfiguration> PlugInConfigurationsFactory(IServiceProvider serviceProvider)
     {
         var persistenceContextProvider = serviceProvider.GetService<IPersistenceContextProvider>() ?? throw new Exception($"{nameof(IPersistenceContextProvider)} not registered.");
-        using var context = persistenceContextProvider.CreateNewTypedContext(typeof(PlugInConfiguration), false);
+        using var context = persistenceContextProvider.CreateNewTypedContext<PlugInConfiguration>(false);
 
         var configs = context.GetAsync<PlugInConfiguration>().AsTask().WaitAndUnwrapException().ToList();
 
@@ -348,11 +333,11 @@ internal sealed class Program : IDisposable
 
         var typesWithCustomConfig = pluginManager.KnownPlugInTypes.Where(t => t.GetInterfaces().Contains(typeof(ISupportDefaultCustomConfiguration))).ToDictionary(t => t.GUID, t => t);
 
-        using var notificationSuspension = context.SuspendChangeNotifications();
         var typesWithMissingCustomConfigs = configs.Where(c => string.IsNullOrWhiteSpace(c.CustomConfiguration) && typesWithCustomConfig.ContainsKey(c.TypeId)).ToList();
         if (typesWithMissingCustomConfigs.Any())
         {
             typesWithMissingCustomConfigs.ForEach(c => this.CreateDefaultPlugInConfiguration(typesWithCustomConfig[c.TypeId]!, c, referenceHandler));
+            using var notificationSuspension = context.SuspendChangeNotifications();
             _ = context.SaveChangesAsync().AsTask().WaitAndUnwrapException();
         }
 
@@ -363,7 +348,6 @@ internal sealed class Program : IDisposable
         }
 
         configs.AddRange(this.CreateMissingPlugInConfigurations(typesWithMissingConfigs, persistenceContextProvider, referenceHandler));
-        _ = context.SaveChangesAsync().AsTask().WaitAndUnwrapException();
         return configs;
     }
 
@@ -382,7 +366,7 @@ internal sealed class Program : IDisposable
         {
             var plugInConfiguration = saveContext.CreateNew<PlugInConfiguration>();
             plugInConfiguration.TypeId = plugInType.GUID;
-            plugInConfiguration.IsActive = !plugInType.IsAssignableTo(typeof(IDisabledByDefault));
+            plugInConfiguration.IsActive = true;
             gameConfiguration.PlugInConfigurations.Add(plugInConfiguration);
             if (plugInType.GetInterfaces().Contains(typeof(ISupportDefaultCustomConfiguration)))
             {
@@ -511,7 +495,7 @@ internal sealed class Program : IDisposable
 
     private async Task ReadSystemConfigurationAsync(IPersistenceContextProvider persistenceContextProvider)
     {
-        using var context = persistenceContextProvider.CreateNewTypedContext(typeof(SystemConfiguration), false);
+        using var context = persistenceContextProvider.CreateNewTypedContext<SystemConfiguration>(false);
         var config = (await context.GetAsync<SystemConfiguration>().ConfigureAwait(false)).FirstOrDefault();
         if (config != null)
         {

@@ -20,14 +20,6 @@ public sealed class GuardIntelligence : BasicMonsterIntelligence
 {
     private Point _spawnPoint;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GuardIntelligence"/> class.
-    /// </summary>
-    public GuardIntelligence()
-    {
-        this.CanWalkOnSafezone = true;
-    }
-
     /// <inheritdoc/>
     public override bool CanWalkOn(Point target)
     {

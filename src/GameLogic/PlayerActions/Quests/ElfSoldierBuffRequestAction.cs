@@ -43,15 +43,15 @@ public class ElfSoldierBuffRequestAction
 
         if (player.Level > 220)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ElfSoldierStrongEnoughMessage)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("You're strong enough on your own.", MessageType.BlueNormal)).ConfigureAwait(false);
             return;
         }
 
         await player.MagicEffectList.AddEffectAsync(new MagicEffect(
             TimeSpan.FromMinutes(60),
             BuffEffect,
-            new MagicEffect.ElementWithTarget(new ConstantElement(50 + (player.Level / 5), AggregateType.AddFinal), Stats.DefenseFinal),
-            new MagicEffect.ElementWithTarget(new ConstantElement(45 + (player.Level / 3)), Stats.GreaterDamageBonus))).ConfigureAwait(false);
+            new MagicEffect.ElementWithTarget(new ConstantElement(50 + (player.Level / 5)), Stats.DefenseBase),
+            new MagicEffect.ElementWithTarget(new ConstantElement(45 + (player.Level / 3)), Stats.BaseDamageBonus))).ConfigureAwait(false);
     }
 
     private sealed class SoldierBuffMagicEffectDefinition : MagicEffectDefinition

@@ -4,8 +4,10 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Quests;
 
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
 using MUnique.OpenMU.GameLogic.Views.Quest;
+using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// A player action which implements the starting of a quest.
@@ -63,7 +65,7 @@ public class QuestStartAction
             }
             else
             {
-                await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.NotEnoughMoneyToProceed)).ConfigureAwait(false);
+                await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Not enough money to proceed", MessageType.BlueNormal)).ConfigureAwait(false);
                 return;
             }
         }

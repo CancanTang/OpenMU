@@ -1,4 +1,4 @@
-﻿// <copyright file="ListCommand.cs" company="MUnique">
+// <copyright file="ListCommand.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// A command which lists all available chat commands with their usage.
 /// </summary>
 [Guid("a5b0a3e5-bb2a-4287-821a-cd97714fe209")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ListCommand_Name), Description = nameof(PlugInResources.ListCommand_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("List command", "Lists all the commands.")]
 [ChatCommandHelp(Command, "Lists all the commands.", null)]
 public class ListCommand : IChatCommandPlugIn
 {
@@ -31,7 +30,7 @@ public class ListCommand : IChatCommandPlugIn
 
         foreach (var commandUsage in commands.Select(x => x.Usage))
         {
-            await player.ShowBlueMessageAsync(commandUsage).ConfigureAwait(false);
+            await player.ShowMessageAsync(commandUsage).ConfigureAwait(false);
         }
     }
 }

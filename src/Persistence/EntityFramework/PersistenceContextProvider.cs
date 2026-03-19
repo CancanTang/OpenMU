@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.EntityFramework.Model;
 using Nito.Disposables;
 using Npgsql;
@@ -172,7 +173,7 @@ public class PersistenceContextProvider : IMigratableDatabaseContextProvider
             await this.ApplyAllPendingUpdatesAsync().ConfigureAwait(false);
 
             // We create a new repository provider, so that the previously loaded data is not effective anymore.
-            this.ResetCache();
+            this.RepositoryProvider = new CacheAwareRepositoryProvider(this._loggerFactory, changePublisher);
         }
         catch
         {
@@ -183,14 +184,6 @@ public class PersistenceContextProvider : IMigratableDatabaseContextProvider
         {
             this._changeListener = changePublisher;
         });
-    }
-
-    /// <summary>
-    /// Resets the cache of this instance.
-    /// </summary>
-    public void ResetCache()
-    {
-        this.RepositoryProvider = new CacheAwareRepositoryProvider(this._loggerFactory, this._changeListener);
     }
 
     /// <inheritdoc />
@@ -240,11 +233,12 @@ public class PersistenceContextProvider : IMigratableDatabaseContextProvider
         return new GuildServerContext(new GuildContext(), this.RepositoryProvider, this._loggerFactory.CreateLogger<GuildServerContext>());
     }
 
-    public IContext CreateNewTypedContext(Type editType, bool useCache, DataModel.Configuration.GameConfiguration? gameConfiguration = null)
+    /// <inheritdoc />
+    public IContext CreateNewTypedContext<T>(bool useCache, DataModel.Configuration.GameConfiguration? gameConfiguration = null)
     {
-        if (!editType.IsConfigurationType() && gameConfiguration is null)
+        if (!typeof(T).IsConfigurationType() && gameConfiguration is null)
         {
-            Debug.WriteLine($"Non-configuration type {editType} without game configuration");
+            Debug.WriteLine($"Non-configuration type {typeof(T)} without game configuration");
         }
 
         if (useCache && gameConfiguration is null)
@@ -252,7 +246,7 @@ public class PersistenceContextProvider : IMigratableDatabaseContextProvider
             throw new ArgumentNullException(nameof(gameConfiguration), "When cache should be used, the game configuration must be provided.");
         }
 
-        var dbContext = new TypedContext(editType) { CurrentGameConfiguration = gameConfiguration as GameConfiguration };
+        var dbContext = new TypedContext<T> { CurrentGameConfiguration = gameConfiguration as GameConfiguration };
         if (useCache)
         {
             return new CachingEntityFrameworkContext(dbContext, this.RepositoryProvider, this._changeListener, this._loggerFactory.CreateLogger<CachingEntityFrameworkContext>());

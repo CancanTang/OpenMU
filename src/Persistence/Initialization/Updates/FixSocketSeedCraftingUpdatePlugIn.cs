@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// This update sets the right settings for the socket seed crafting.
 /// </summary>
-[PlugIn]
-[Display(Name = PlugInName, Description = PlugInDescription)]
+[PlugIn(PlugInName, PlugInDescription)]
 [Guid("C802EFC2-1D42-4218-871E-8886D115F3ED")]
 public class FixSocketSeedCraftingUpdatePlugIn : UpdatePlugInBase
 {

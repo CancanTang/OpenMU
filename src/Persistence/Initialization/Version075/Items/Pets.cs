@@ -29,12 +29,9 @@ public class Pets : InitializerBase
     /// <inheritdoc />
     public override void Initialize()
     {
-        var angel = this.CreatePet(0, "Guardian Angel", 23, (Stats.DamageReceiveDecrement, 0.8f, AggregateType.Multiplicate), (Stats.MaximumHealth, 50f, AggregateType.AddRaw));
-        this.AddItemToJewelItemDrop(angel);
-        var imp = this.CreatePet(1, "Imp", 28, (Stats.AttackDamageIncrease, 1.3f, AggregateType.Multiplicate));
-        this.AddItemToJewelItemDrop(imp);
-        var uniria = this.CreatePet(2, "Horn of Uniria", 25);
-        this.AddItemToJewelItemDrop(uniria);
+        this.CreatePet(0, "Guardian Angel", 23, (Stats.DamageReceiveDecrement, 0.8f, AggregateType.Multiplicate), (Stats.MaximumHealth, 50f, AggregateType.AddRaw));
+        this.CreatePet(1, "Imp", 28, (Stats.AttackDamageIncrease, 1.3f, AggregateType.Multiplicate));
+        this.CreatePet(2, "Horn of Uniria", 25);
     }
 
     private ItemDefinition CreatePet(byte number, string name, int dropLevelAndLevelRequirement, params (AttributeDefinition, float, AggregateType)[] basePowerUps)

@@ -4,7 +4,9 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Items;
 
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
+using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Action to stack items.
@@ -54,7 +56,7 @@ public class ItemStackAction
         }
         else
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.YouLackOfJewels)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("You are lacking of Jewels.", MessageType.BlueNormal)).ConfigureAwait(false);
         }
     }
 
@@ -81,13 +83,13 @@ public class ItemStackAction
         var stacked = player.Inventory?.GetItem(slot);
         if (stacked is null)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.StackedJewelNotFound)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Stacked Jewel not found.", MessageType.BlueNormal)).ConfigureAwait(false);
             return;
         }
 
         if (stacked.Definition != mix.MixedJewel)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.SelectedItemIsNotStackedJewel)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Selected Item is not a stacked Jewel.", MessageType.BlueNormal)).ConfigureAwait(false);
             return;
         }
 
@@ -96,7 +98,7 @@ public class ItemStackAction
         var freeSlots = player.Inventory!.FreeSlots.Take(pieces).ToList();
         if (freeSlots.Count < pieces)
         {
-            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.InventoryNotEnoughSpace)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Inventory got not enough Space.", MessageType.BlueNormal)).ConfigureAwait(false);
             return;
         }
 

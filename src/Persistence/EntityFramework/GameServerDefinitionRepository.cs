@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
-using System.Threading;
-
 namespace MUnique.OpenMU.Persistence.EntityFramework;
 
 using Microsoft.EntityFrameworkCore;
@@ -28,16 +26,14 @@ internal class GameServerDefinitionRepository : CachingGenericRepository<GameSer
     }
 
     /// <inheritdoc />
-    protected override async ValueTask LoadDependentDataAsync(object obj, DbContext currentContext, CancellationToken cancellationToken)
+    protected override async ValueTask LoadDependentDataAsync(object obj, DbContext currentContext)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         if (obj is GameServerDefinition definition)
         {
             var entityEntry = currentContext.Entry(obj);
             foreach (var collection in entityEntry.Collections.Where(c => !c.IsLoaded && c.Metadata is INavigation))
             {
-                await this.LoadCollectionAsync(entityEntry, (INavigation)collection.Metadata, currentContext, cancellationToken).ConfigureAwait(false);
+                await this.LoadCollectionAsync(entityEntry, (INavigation)collection.Metadata, currentContext).ConfigureAwait(false);
                 collection.IsLoaded = true;
             }
 
@@ -45,7 +41,7 @@ internal class GameServerDefinitionRepository : CachingGenericRepository<GameSer
             {
                 definition.RawGameConfiguration =
                     await this.RepositoryProvider.GetRepository<GameConfiguration>()!
-                        .GetByIdAsync(definition.GameConfigurationId.Value, cancellationToken).ConfigureAwait(false);
+                        .GetByIdAsync(definition.GameConfigurationId.Value).ConfigureAwait(false);
 
                 if (currentContext is EntityDataContext context)
                 {
@@ -56,7 +52,7 @@ internal class GameServerDefinitionRepository : CachingGenericRepository<GameSer
             if (definition.ServerConfigurationId.HasValue)
             {
                 definition.ServerConfiguration = await this.RepositoryProvider.GetRepository<GameServerConfiguration>()!
-                    .GetByIdAsync(definition.ServerConfigurationId.Value, cancellationToken).ConfigureAwait(false);
+                    .GetByIdAsync(definition.ServerConfigurationId.Value).ConfigureAwait(false);
             }
         }
     }

@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.ClientLauncher;
 
-using System.ComponentModel;
 using System.Windows.Forms;
 
 /// <summary>
@@ -23,7 +22,6 @@ public partial class HostConfigurationDialog : Form
     /// <summary>
     /// Gets or sets the settings.
     /// </summary>
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public ServerHostSettings Settings
     {
         get

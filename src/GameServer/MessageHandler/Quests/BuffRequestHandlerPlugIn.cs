@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for (elf soldier) buff request packets (0xF6, 0x31 identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.BuffRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.BuffRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Quest - Request available quests", "Packet handler for (elf soldier) buff request packets (0xF6, 0x31 identifier)")]
 [Guid("98F31A99-33CE-46FF-98BF-B66EF509C277")]
 [BelongsToGroup(QuestGroupHandlerPlugIn.GroupKey)]
 public class BuffRequestHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly ElfSoldierBuffRequestAction _buffRequestAction = new();
+    private readonly ElfSoldierBuffRequestAction _buffRequestAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

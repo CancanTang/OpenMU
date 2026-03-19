@@ -7,13 +7,13 @@ namespace MUnique.OpenMU.GameServer.RemoteView.World;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic.Views.World;
 using MUnique.OpenMU.Network.Packets.ServerToClient;
+using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// The default implementation of the <see cref="ITeleportPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.TeleportPlugIn075_Name), Description = nameof(PlugInResources.TeleportPlugIn075_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(TeleportPlugIn075), "The default implementation of the ITeleportPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("490DB5E5-9DB6-4068-9708-E7D69F82BF3B")]
 public class TeleportPlugIn075 : ITeleportPlugIn
 {

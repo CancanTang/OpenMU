@@ -16,13 +16,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for area skill hit packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.AreaSkillHitHandlerPlugIn_Name), Description = nameof(PlugInResources.AreaSkillHitHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("AreaSkillHitHandlerPlugIn", "Handler for area skill hit packets.")]
 [Guid("2f5848fd-a1bd-488b-84b3-fd88bdef5ac8")]
 [MinimumClient(1, 0, ClientLanguage.Invariant)]
 internal class AreaSkillHitHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly AreaSkillHitAction _skillHitAction = new();
+    private readonly AreaSkillHitAction _skillHitAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => true;

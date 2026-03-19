@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for guild request answer packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.GuildRequestAnswerHandlerPlugIn_Name), Description = nameof(PlugInResources.GuildRequestAnswerHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("GuildRequestAnswerHandlerPlugIn", "Handler for guild request answer packets.")]
 [Guid("30828257-ec3a-4b99-981d-ec105fc5e82e")]
 internal class GuildRequestAnswerHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly GuildRequestAnswerAction _answerAction = new();
+    private readonly GuildRequestAnswerAction _answerAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

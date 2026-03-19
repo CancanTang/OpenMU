@@ -27,7 +27,7 @@ public class WarpAction
         }
         else
         {
-            await player.ShowBlueMessageAsync(errorMessage).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(errorMessage, MessageType.BlueNormal)).ConfigureAwait(false);
         }
     }
 

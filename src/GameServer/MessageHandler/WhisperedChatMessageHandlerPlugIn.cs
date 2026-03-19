@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for whispered chat messages.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.WhisperedChatMessageHandlerPlugIn_Name), Description = nameof(PlugInResources.WhisperedChatMessageHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Whisper Message Handler", "Packet handler for whispered chat messages.")]
 [Guid("A81C652C-4DAE-477F-A7D0-328924B8A3FC")]
 internal class WhisperedChatMessageHandlerPlugIn : ChatMessageBaseHandlerPlugIn
 {

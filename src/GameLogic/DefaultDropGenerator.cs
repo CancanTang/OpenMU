@@ -18,8 +18,6 @@ public class DefaultDropGenerator : IDropGenerator
     /// </summary>
     public static readonly int BaseMoneyDrop = 7;
 
-    private static readonly int DropLevelMaxGap = 12;
-
     private readonly IRandomizer _randomizer;
 
     /// <summary>
@@ -28,8 +26,6 @@ public class DefaultDropGenerator : IDropGenerator
     private readonly List<DropItemGroup> _dropGroups = new(64);
 
     private readonly AsyncLock _lock = new();
-
-    private readonly byte _maxItemOptionLevelDrop;
 
     private readonly IList<ItemDefinition> _ancientItems;
 
@@ -45,7 +41,6 @@ public class DefaultDropGenerator : IDropGenerator
     public DefaultDropGenerator(GameConfiguration config, IRandomizer randomizer)
     {
         this._randomizer = randomizer;
-        this._maxItemOptionLevelDrop = config.MaximumItemOptionLevelDrop < 1 || config.MaximumItemOptionLevelDrop > 4 ? (byte)3 : config.MaximumItemOptionLevelDrop;
         this._droppableItems = config.Items.Where(i => i.DropsFromMonsters).ToList();
         this._ancientItems = this._droppableItems.Where(
             i => i.PossibleItemSetGroups.Any(
@@ -116,7 +111,36 @@ public class DefaultDropGenerator : IDropGenerator
     /// <inheritdoc/>
     public Item? GenerateItemDrop(DropItemGroup selectedGroup)
     {
-        return this.GenerateItemDrop(selectedGroup, selectedGroup.PossibleItems);
+        var item = selectedGroup.ItemType == SpecialItemType.Ancient
+            ? this.GenerateRandomAncient()
+            : this.GenerateRandomItem(selectedGroup.PossibleItems);
+
+        if (item is null)
+        {
+            return null;
+        }
+
+        if (selectedGroup is ItemDropItemGroup itemDropItemGroup)
+        {
+            item.Level = (byte)this._randomizer.NextInt(itemDropItemGroup.MinimumLevel, itemDropItemGroup.MaximumLevel + 1);
+        }
+        else if (selectedGroup.ItemLevel is { } itemLevel)
+        {
+            item.Level = itemLevel;
+        }
+        else
+        {
+            // no level defined, so it stays at 0.
+        }
+
+        item.Level = Math.Min(item.Level, item.Definition!.MaximumItemLevel);
+
+        if (selectedGroup.ItemType == SpecialItemType.Excellent)
+        {
+            this.AddRandomExcOptions(item);
+        }
+
+        return item;
     }
 
     /// <inheritdoc/>
@@ -128,18 +152,15 @@ public class DefaultDropGenerator : IDropGenerator
             return (null, null, ItemDropEffect.Undefined);
         }
 
-        var dropEffect = ItemDropEffect.Undefined;
-        if (group is ItemDropItemGroup itemDropItemGroup)
+        if (@group is ItemDropItemGroup itemDropItemGroup)
         {
-            dropEffect = itemDropItemGroup.DropEffect;
-
             if (group.ItemType == SpecialItemType.Money)
             {
-                return (null, (uint)itemDropItemGroup.MoneyAmount, dropEffect);
+                return (null, (uint)itemDropItemGroup.MoneyAmount, itemDropItemGroup.DropEffect);
             }
         }
 
-        return (this.GenerateItemDrop(group), null, dropEffect);
+        return (this.GenerateItemDrop(group), null, ItemDropEffect.Undefined);
     }
 
     /// <summary>
@@ -158,7 +179,6 @@ public class DefaultDropGenerator : IDropGenerator
         }
 
         item.Level = GetItemLevelByMonsterLevel(item.Definition!, monsterLvl);
-        item.Durability = item.GetMaximumDurabilityOfOnePiece();
         return item;
     }
 
@@ -168,9 +188,8 @@ public class DefaultDropGenerator : IDropGenerator
     /// <param name="item">The item.</param>
     protected void ApplyRandomOptions(Item item)
     {
-        foreach (var option in item.Definition!.PossibleItemOptions.Where(o =>
-            o.AddsRandomly &&
-            !o.PossibleOptions.Any(po => object.Equals(po.OptionType, ItemOptionTypes.Excellent))))
+        item.Durability = item.GetMaximumDurabilityOfOnePiece();
+        foreach (var option in item.Definition!.PossibleItemOptions.Where(o => o.AddsRandomly))
         {
             this.ApplyOption(item, option);
         }
@@ -189,17 +208,16 @@ public class DefaultDropGenerator : IDropGenerator
     /// <summary>
     /// Gets a random excellent item.
     /// </summary>
-    /// <param name="monsterLvl">The monster level, if it's a monster drop.</param>
-    /// <param name="possibleItems">The possible items, if the drop is from an item box (e.g. box of kundun).</param>
+    /// <param name="monsterLvl">The monster level.</param>
     /// <returns>A random excellent item.</returns>
-    protected Item? GenerateRandomExcellentItem(int monsterLvl = 0, ICollection<ItemDefinition>? possibleItems = null)
+    protected Item? GenerateRandomExcellentItem(int monsterLvl)
     {
-        if (monsterLvl < 25 && possibleItems is null)
+        if (monsterLvl < 25)
         {
             return null;
         }
 
-        var possible = possibleItems ?? this.GetPossibleList(monsterLvl - 25);
+        var possible = this.GetPossibleList(monsterLvl - 25);
         var item = this.GenerateRandomItem(possible);
         if (item is null)
         {
@@ -209,7 +227,6 @@ public class DefaultDropGenerator : IDropGenerator
         item.HasSkill = item.CanHaveSkill(); // every excellent item got skill
 
         this.AddRandomExcOptions(item);
-        item.Durability = item.GetMaximumDurabilityOfOnePiece();
         return item;
     }
 
@@ -228,7 +245,6 @@ public class DefaultDropGenerator : IDropGenerator
         item.HasSkill = item.CanHaveSkill(); // every ancient item got skill
 
         this.ApplyRandomAncientOption(item);
-        item.Durability = item.GetMaximumDurabilityOfOnePiece();
         return item;
     }
 
@@ -277,43 +293,6 @@ public class DefaultDropGenerator : IDropGenerator
         return true;
     }
 
-    private Item? GenerateItemDrop(DropItemGroup selectedGroup, ICollection<ItemDefinition> possibleItems)
-    {
-        var item = selectedGroup.ItemType switch
-        {
-            SpecialItemType.Ancient => this.GenerateRandomAncient(),
-            SpecialItemType.Excellent => this.GenerateRandomExcellentItem(possibleItems: possibleItems),
-            _ => this.GenerateRandomItem(possibleItems),
-        };
-
-        if (item is null)
-        {
-            return null;
-        }
-
-        if (item.Durability == 0)
-        {
-            item.Durability = item.GetMaximumDurabilityOfOnePiece();
-        }
-
-        if (selectedGroup is ItemDropItemGroup itemDropItemGroup)
-        {
-            item.Level = (byte)this._randomizer.NextInt(itemDropItemGroup.MinimumLevel, itemDropItemGroup.MaximumLevel + 1);
-        }
-        else if (selectedGroup.ItemLevel is { } itemLevel)
-        {
-            item.Level = itemLevel;
-        }
-        else
-        {
-            // no level defined, so it stays at 0.
-        }
-
-        item.Level = Math.Min(item.Level, item.Definition!.MaximumItemLevel);
-
-        return item;
-    }
-
     private void ApplyOption(Item item, ItemOptionDefinition option)
     {
         for (int i = 0; i < option.MaximumOptionsPerItem; i++)
@@ -330,9 +309,7 @@ public class DefaultDropGenerator : IDropGenerator
                 var itemOptionLink = new ItemOptionLink
                 {
                     ItemOption = newOption,
-                    Level = newOption?.LevelDependentOptions.Select(ldo => ldo.Level)
-                        .Concat(newOption.LevelDependentOptions.Count > 0 ? [1] : []) // For base def/dmg opts level 1 is not an ItemOptionOfLevel entry
-                        .Distinct().Where(l => l <= this._maxItemOptionLevelDrop).SelectRandom() ?? 0,
+                    Level = newOption?.LevelDependentOptions.Select(l => l.Level).SelectRandom() ?? 0
                 };
                 item.ItemOptions.Add(itemOptionLink);
             }
@@ -341,7 +318,7 @@ public class DefaultDropGenerator : IDropGenerator
 
     private Item? GenerateRandomItem(ICollection<ItemDefinition>? possibleItems)
     {
-        if (possibleItems is null || possibleItems.Count == 0)
+        if (possibleItems is null || !possibleItems.Any())
         {
             return null;
         }
@@ -366,13 +343,11 @@ public class DefaultDropGenerator : IDropGenerator
 
         var itemOfSet = ancientSet.Items.First(i => object.Equals(i.ItemDefinition, item.Definition));
         item.ItemSetGroups.Add(itemOfSet);
-        if (itemOfSet.BonusOption is { } bonusOption) // for example: +5str or +10str
-        {
-            var bonusOptionLink = new ItemOptionLink();
-            bonusOptionLink.ItemOption = bonusOption;
-            bonusOptionLink.Level = bonusOption.LevelDependentOptions.Select(o => o.Level).SelectRandom();
-            item.ItemOptions.Add(bonusOptionLink);
-        }
+        var bonusOption = itemOfSet.BonusOption ?? throw Error.NotInitializedProperty(itemOfSet, nameof(itemOfSet.BonusOption)); // for example: +5str or +10str
+        var bonusOptionLink = new ItemOptionLink();
+        bonusOptionLink.ItemOption = bonusOption;
+        bonusOptionLink.Level = bonusOption.LevelDependentOptions.Select(o => o.Level).SelectRandom();
+        item.ItemOptions.Add(bonusOptionLink);
     }
 
     private void AddRandomExcOptions(Item item)
@@ -423,37 +398,9 @@ public class DefaultDropGenerator : IDropGenerator
     private Item? GenerateItemDropOrMoney(MonsterDefinition monster, DropItemGroup selectedGroup, int gainedExperience, out uint? droppedMoney)
     {
         droppedMoney = null;
-
         if (selectedGroup.PossibleItems?.Count > 0)
         {
-            var isDropSpecificForMonster = monster.DropItemGroups.Contains(selectedGroup);
-
-            if (isDropSpecificForMonster)
-            {
-                return this.GenerateItemDrop(selectedGroup, selectedGroup.PossibleItems);
-            }
-            else
-            {
-                var monsterLevel = (int)monster[Stats.Level];
-                List<ItemDefinition> filteredPossibleItems;
-
-                if (selectedGroup.ItemType == SpecialItemType.Jewel)
-                {
-                    filteredPossibleItems = [.. selectedGroup.PossibleItems.Where(it => it.DropLevel <= monsterLevel)];
-
-                    if (monsterLevel > 66)
-                    {
-                        // Jewel of Chaos doesn't drop after a certain monster level
-                        filteredPossibleItems.RemoveAll(it => it.Group == 12 && it.Number == 15);
-                    }
-                }
-                else
-                {
-                    filteredPossibleItems = [.. selectedGroup.PossibleItems.Where(it => it.DropLevel == 0 || (it.DropLevel <= monsterLevel && it.DropLevel > monsterLevel - DropLevelMaxGap))];
-                }
-
-                return this.GenerateItemDrop(selectedGroup, filteredPossibleItems);
-            }
+            return this.GenerateItemDrop(selectedGroup);
         }
 
         switch (selectedGroup.ItemType)
@@ -507,9 +454,9 @@ public class DefaultDropGenerator : IDropGenerator
 
         return this._droppableItemsPerMonsterLevel[monsterLevel]
             ??= (from it in this._droppableItems
-                 where (it.DropLevel <= monsterLevel)
-                       && (it.DropLevel > monsterLevel - DropLevelMaxGap)
-                       && (!socketItems || it.MaximumSockets > 0)
-                 select it).ToList();
+            where (it.DropLevel <= monsterLevel)
+                  && (it.DropLevel > monsterLevel - 12)
+                  && (!socketItems || it.MaximumSockets > 0)
+            select it).ToList();
     }
 }

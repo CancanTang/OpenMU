@@ -12,14 +12,6 @@ using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
 public class PeriodicInvasionConfiguration : PeriodicTaskConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="PeriodicInvasionConfiguration"/> class.
-    /// </summary>
-    public PeriodicInvasionConfiguration()
-    {
-        this.Message = "Invasion's been started!";
-    }
-
-    /// <summary>
     /// Gets the default configuration.
     /// </summary>
     public static PeriodicInvasionConfiguration DefaultGoldenInvasion => new()
@@ -40,4 +32,12 @@ public class PeriodicInvasionConfiguration : PeriodicTaskConfiguration
         Message = "[{mapName}] Red Dragon Invasion!",
         Timetable = GenerateTimeSequence(TimeSpan.FromHours(6), new TimeOnly(2, 0)).ToList(), // Every 6 hours, starting from 02:00
     };
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PeriodicInvasionConfiguration"/> class.
+    /// </summary>
+    public PeriodicInvasionConfiguration()
+    {
+        this.Message = "Invasion's been started!";
+    }
 }

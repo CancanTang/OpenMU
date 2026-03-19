@@ -43,8 +43,8 @@ public sealed class MapApp : IHostedService, IDisposable
         this._logger.LogInformation($"Start initializing Map app for game server {this._gameServer.Id} on port {port}.");
 
         var builder = WebApplication.CreateBuilder();
-        builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
+        builder.Services.AddRazorPages();
+        builder.Services.AddServerSideBlazor();
         builder.Services.AddControllers();
 
         builder.Services
@@ -66,15 +66,16 @@ public sealed class MapApp : IHostedService, IDisposable
         }
         else
         {
-            app.UseExceptionHandler("/Error", createScopeForErrors: true);
+            app.UseExceptionHandler("/Error");
         }
 
         app.UseStaticFiles();
-        app.UseAntiforgery();
+        app.UseRouting();
 
-        app.MapRazorComponents<MUnique.OpenMU.Web.Map.App>()
-            .AddInteractiveServerRenderMode();
+        app.MapBlazorHub();
         app.MapControllers();
+        app.MapRazorPages();
+        app.MapFallbackToPage("/_Host");
 
         this._host = app;
         await this._host!.StartAsync(cancellationToken).ConfigureAwait(false);

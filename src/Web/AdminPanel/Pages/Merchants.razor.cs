@@ -6,16 +6,14 @@ namespace MUnique.OpenMU.Web.AdminPanel.Pages;
 
 using System.ComponentModel;
 using System.Threading;
-using Blazored.Toast.Services;
+using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.QuickGrid;
 using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.Persistence;
-using MUnique.OpenMU.Web.AdminPanel.Properties;
 
 /// <summary>
 /// Razor page which shows objects of the specified type in a grid.
@@ -45,10 +43,10 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
     public IPersistenceContextProvider ContextProvider { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the toast service.
+    /// Gets or sets the modal service.
     /// </summary>
     [Inject]
-    public IToastService ToastService { get; set; } = null!;
+    public IModalService ModalService { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the navigation manager.
@@ -61,12 +59,6 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
     /// </summary>
     [Inject]
     public IJSRuntime JavaScript { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the logger.
-    /// </summary>
-    [Inject]
-    public ILogger<Merchants> Logger { get; set; } = null!;
 
     private IQueryable<MerchantStorageViewModel>? ViewModels => this._viewModels?.AsQueryable();
 
@@ -106,7 +98,7 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
     {
         var cts = new CancellationTokenSource();
         this._disposeCts = cts;
-        this._loadTask = Task.Run(() => this.LoadDataAsync(cts.Token));
+        this._loadTask = Task.Run(() => this.LoadDataAsync(cts.Token), cts.Token);
         await base.OnParametersSetAsync().ConfigureAwait(true);
     }
 
@@ -119,7 +111,7 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
 
         var isConfirmed = await this.JavaScript.InvokeAsync<bool>(
                 "window.confirm",
-                Resources.UnsavedChangesQuestion)
+                "There are unsaved changes. Are you sure you want to discard them?")
             .ConfigureAwait(true);
 
         if (!isConfirmed)
@@ -134,33 +126,19 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
 
     private async Task LoadDataAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
 
-            this._persistenceContext = await this.DataSource.GetContextAsync(cancellationToken).ConfigureAwait(true);
-            await this.DataSource.GetOwnerAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
-            
-            var data = this.DataSource.GetAll<MonsterDefinition>()
-                .Where(m => m is { ObjectKind: NpcObjectKind.PassiveNpc, MerchantStore: { } });
-            this._viewModels = data
-                .Select(o => new MerchantStorageViewModel(o))
-                .OrderBy(o => o.Name)
-                .ToList();
+        this._persistenceContext = await this.DataSource.GetContextAsync().ConfigureAwait(true);
+        await this.DataSource.GetOwnerAsync().ConfigureAwait(true);
+        cancellationToken.ThrowIfCancellationRequested();
+        var data = this.DataSource.GetAll<MonsterDefinition>()
+            .Where(m => m is { ObjectKind: NpcObjectKind.PassiveNpc, MerchantStore: { } });
+        this._viewModels = data
+            .Select(o => new MerchantStorageViewModel(o))
+            .OrderBy(o => o.Merchant.Designation)
+            .ToList();
 
-            await this.InvokeAsync(() =>
-            {
-                this.StateHasChanged();
-            }).ConfigureAwait(true);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected when navigating away - ignore
-        }
-        catch (Exception ex)
-        {
-            this.Logger.LogError(ex, "Error loading merchant data");
-        }
+        await this.InvokeAsync(this.StateHasChanged).ConfigureAwait(false);
     }
 
     private async Task OnMerchantEditClickAsync(MerchantStorageViewModel context)
@@ -171,24 +149,25 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
 
     private async Task OnSaveButtonClickAsync()
     {
+        string text;
         try
         {
             if (this._persistenceContext is { } context)
             {
                 var success = await context.SaveChangesAsync().ConfigureAwait(true);
-                var text = success ? Resources.SavedChanges : Resources.NoChangesToSave;
-                this.ToastService.ShowSuccess(text);
+                text = success ? "The changes have been saved." : "There were no changes to save.";
             }
             else
             {
-                this.ToastService.ShowError(Resources.FailedByUninitializedContext);
+                text = "Failed, context not initialized";
             }
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, $"An unexpected error occurred on save: {ex.Message}");
-            this.ToastService.ShowError(string.Format(Resources.UnexpectedErrorOccurred, ex.Message));
+            text = $"An unexpected error occurred: {ex.Message}.";
         }
+
+        await this.ModalService.ShowMessageAsync("Save", text).ConfigureAwait(true);
     }
 
     private async Task OnCancelButtonClickAsync()
@@ -196,7 +175,7 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
         if (this._persistenceContext?.HasChanges is true)
         {
             await this.DataSource.DiscardChangesAsync().ConfigureAwait(true);
-            await this.LoadDataAsync(this._disposeCts?.Token ?? default).ConfigureAwait(true);
+            await this.LoadDataAsync(default).ConfigureAwait(true);
         }
     }
 
@@ -206,7 +185,7 @@ public partial class Merchants : ComponentBase, IAsyncDisposable
         {
             var isConfirmed = await this.JavaScript.InvokeAsync<bool>(
                     "window.confirm",
-                    Resources.UnsavedChangesQuestion)
+                    "There are unsaved changes. Are you sure you want to discard them?")
                 .ConfigureAwait(true);
 
             if (!isConfirmed)

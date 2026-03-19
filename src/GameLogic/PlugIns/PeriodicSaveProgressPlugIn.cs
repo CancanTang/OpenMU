@@ -10,8 +10,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Saves the progress of players periodically when their status is 'EnteredWorld'.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PeriodicSaveProgressPlugIn_Name), Description = nameof(PlugInResources.PeriodicSaveProgressPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(PeriodicSaveProgressPlugIn), "Saves the progress of players periodically when their status is 'EnteredWorld'.")]
 [Guid("CEBBD5BD-B0DF-4768-816D-AF8DF78888B2")]
 public class PeriodicSaveProgressPlugIn : IPeriodicTaskPlugIn, ISupportCustomConfiguration<PeriodicSaveProgressPlugInConfiguration>, ISupportDefaultCustomConfiguration
 {
@@ -46,7 +45,7 @@ public class PeriodicSaveProgressPlugIn : IPeriodicTaskPlugIn, ISupportCustomCon
                 {
                     if (player.PlayerState.CurrentState == PlayerState.EnteredWorld)
                     {
-                        await player.SaveProgressAsync().ConfigureAwait(false);
+                        await player.PersistenceContext.SaveChangesAsync().ConfigureAwait(false);
                     }
                     else
                     {
@@ -63,7 +62,7 @@ public class PeriodicSaveProgressPlugIn : IPeriodicTaskPlugIn, ISupportCustomCon
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error when saving player data periodically.");
+            logger.LogError(ex, "Unexpected error when saving player data periodically: {ex}", ex);
         }
     }
 

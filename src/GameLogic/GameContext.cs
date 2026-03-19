@@ -7,7 +7,6 @@ namespace MUnique.OpenMU.GameLogic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Globalization;
 using System.Threading;
 using MUnique.OpenMU.GameLogic.MiniGames;
 using MUnique.OpenMU.GameLogic.PlugIns;
@@ -67,7 +66,6 @@ public class GameContext : AsyncDisposable, IGameContext
     /// <param name="loggerFactory">The logger factory.</param>
     /// <param name="plugInManager">The plug in manager.</param>
     /// <param name="dropGenerator">The drop generator.</param>
-    /// <param name="changeMediator">The cange mediator.</param>
     public GameContext(GameConfiguration configuration, IPersistenceContextProvider persistenceContextProvider, IMapInitializer mapInitializer, ILoggerFactory loggerFactory, PlugInManager plugInManager, IDropGenerator dropGenerator, IConfigurationChangeMediator changeMediator)
     {
         try
@@ -111,9 +109,6 @@ public class GameContext : AsyncDisposable, IGameContext
 
     /// <inheritdoc />
     public virtual float ExperienceRate => this.Configuration.ExperienceRate;
-
-    /// <inheritdoc />
-    public virtual bool PvpEnabled { get; }
 
     /// <inheritdoc/>
     public GameConfiguration Configuration { get; }
@@ -242,7 +237,7 @@ public class GameContext : AsyncDisposable, IGameContext
     {
         var miniGameKey = MiniGameMapKey.Create(miniGameDefinition, requester);
 
-        if (this._miniGames.TryGetValue(miniGameKey, out var miniGameContext) && miniGameContext is { IsDisposed: false, IsDisposing: false })
+        if (this._miniGames.TryGetValue(miniGameKey, out var miniGameContext))
         {
             return miniGameContext;
         }
@@ -251,14 +246,7 @@ public class GameContext : AsyncDisposable, IGameContext
         {
             if (this._miniGames.TryGetValue(miniGameKey, out miniGameContext))
             {
-                if (miniGameContext.IsDisposed)
-                {
-                    this._miniGames.Remove(miniGameKey);
-                }
-                else
-                {
-                    return miniGameContext;
-                }
+                return miniGameContext;
             }
 
             switch (miniGameDefinition.Type)
@@ -374,42 +362,6 @@ public class GameContext : AsyncDisposable, IGameContext
 
         var playerList = await this.GetPlayersAsync().ConfigureAwait(false);
         await playerList.Select(action).WhenAll().ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
-    public async ValueTask ForEachPlayerGroupedByCultureAsync<TCultureState>(Func<CultureInfo, TCultureState> stateFactory, Func<Player, TCultureState, Task> action)
-    {
-        if (this._playerList.Count == 0)
-        {
-            return;
-        }
-
-        var playerList = await this.GetPlayersAsync().ConfigureAwait(false);
-        await playerList
-            .GroupBy(p => p.Culture)
-            .SelectMany(g =>
-            {
-                var state = stateFactory(g.Key);
-                return g.Select(player => action(player, state));
-            })
-            .WhenAll().ConfigureAwait(false);
-    }
-
-    /// <inheritdoc/>
-    public async ValueTask ShowGlobalLocalizedMessageAsync(MessageType messageType, string messageKey, params object?[] formatArguments)
-    {
-        await this.ForEachPlayerGroupedByCultureAsync<string>(
-            cultureInfo =>
-            {
-                if (formatArguments.Length > 0)
-                {
-                    return string.Format(PlayerMessage.ResourceManager.GetString(messageKey, cultureInfo) ?? string.Empty, formatArguments);
-                }
-
-                return PlayerMessage.ResourceManager.GetString(messageKey, cultureInfo) ?? string.Empty;
-            },
-            (player, message) => player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(message, messageType)).AsTask())
-            .ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

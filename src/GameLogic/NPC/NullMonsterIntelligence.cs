@@ -2,9 +2,9 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
-namespace MUnique.OpenMU.GameLogic.NPC;
-
 using MUnique.OpenMU.Pathfinding;
+
+namespace MUnique.OpenMU.GameLogic.NPC;
 
 /// <summary>
 /// The monster intelligence which does nothing.
@@ -19,9 +19,6 @@ public sealed class NullMonsterIntelligence : INpcIntelligence
         get => this._npc ?? throw Error.NotInitializedProperty(this);
         set => this._npc = value;
     }
-
-    /// <inheritdoc />
-    public bool CanWalkOnSafezone => false;
 
     /// <inheritdoc />
     public void RegisterHit(IAttacker attacker)
@@ -42,9 +39,8 @@ public sealed class NullMonsterIntelligence : INpcIntelligence
     }
 
     /// <summary>
-    /// If Null Monster can walk on target.
+    /// CanWalkOn?
     /// </summary>
-    /// <param name="target">The target.</param>
     public bool CanWalkOn(Point target)
     {
         return false;

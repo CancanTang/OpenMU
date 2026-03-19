@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// Adds the Force skill to a created dark lord character.
 /// </summary>
 [Guid("D197321F-1BAC-4A82-8548-13674AF6D82C")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.AddForceForDarkLord_Name), Description = nameof(PlugInResources.AddForceForDarkLord_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(AddForceForDarkLord), "Adds the Force skill to a created dark lord character.")]
 public class AddForceForDarkLord : AddInitialSkillPlugInBase
 {
     /// <summary>

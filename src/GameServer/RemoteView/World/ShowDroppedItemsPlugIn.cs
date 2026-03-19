@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IShowDroppedItemsPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ShowDroppedItemsPlugIn_Name), Description = nameof(PlugInResources.ShowDroppedItemsPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ShowDroppedItemsPlugIn", "The default implementation of the IShowDroppedItemsPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("f89308c3-5fe7-46e2-adfc-85a56ba23233")]
 public class ShowDroppedItemsPlugIn : IShowDroppedItemsPlugIn
 {
@@ -48,12 +47,10 @@ public class ShowDroppedItemsPlugIn : IShowDroppedItemsPlugIn
                 ItemCount = (byte)itemCount,
             };
 
-            int headerSize = ItemsDroppedRef.GetRequiredSize(0, 0);
-            int actualSize = headerSize;
             int i = 0;
             foreach (var item in droppedItems)
             {
-                var itemBlock = new ItemsDroppedRef.DroppedItemRef(span[actualSize..]);
+                var itemBlock = packet[i, droppedItemLength];
                 itemBlock.Id = item.Id;
                 if (freshDrops)
                 {
@@ -62,13 +59,12 @@ public class ShowDroppedItemsPlugIn : IShowDroppedItemsPlugIn
 
                 itemBlock.PositionX = item.Position.X;
                 itemBlock.PositionY = item.Position.Y;
-                var itemSize = itemSerializer.SerializeItem(itemBlock.ItemData, item.Item);
-                actualSize += ItemsDroppedRef.DroppedItemRef.GetRequiredSize(itemSize);
+                itemSerializer.SerializeItem(itemBlock.ItemData, item.Item);
+
                 i++;
             }
 
-            span.Slice(0, actualSize).SetPacketSize();
-            return actualSize;
+            return size;
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);

@@ -19,8 +19,7 @@ public sealed class PacketAnalyzer : IDisposable
     private const string ClientToServerPacketsFile = "ClientToServerPackets.xml";
     private const string ServerToClientPacketsFile = "ServerToClientPackets.xml";
     private const string CommonFile = "CommonEnums.xml";
-    private const int DefaultVersionValue = 100;
-    private const int ExtendedVersionValue = 106 * 100 + 3;
+    private const int DefaultVersionValue = 090;
 
     private readonly IList<IDisposable> _watchers = new List<IDisposable>();
     private PacketDefinitions? _clientPacketDefinitions;
@@ -79,49 +78,6 @@ public sealed class PacketAnalyzer : IDisposable
     }
 
     /// <summary>
-    /// Extracts the information of the packet and returns it as a short, formatted string.
-    /// </summary>
-    /// <param name="packet">The packet.</param>
-    /// <returns>The formatted string with the extracted information.</returns>
-    public (string, PacketDefinition?) ExtractShortInformation(Packet packet)
-    {
-        var definitions = packet.ToServer ? this._clientPacketDefinitions : this._serverPacketDefinitions;
-        var definition = this.DeterminePacketDefinition(packet);
-        if (definition is null)
-        {
-            return (packet.PacketData, null);
-        }
-
-        var stringBuilder = new StringBuilder(definition.Caption ?? definition.Name ?? string.Empty);
-        var relevantFields = definition.Fields?
-            .Where(f => f.Type != FieldType.Binary && f.Type != FieldType.StructureArray)
-            .Where(f => f.Name != "HeaderCode")
-            ?? [];
-        if (relevantFields.Any())
-        {
-            stringBuilder.Append(" (");
-            var isFirst = true;
-            foreach (var field in relevantFields)
-            {
-                if (!isFirst)
-                {
-                    stringBuilder.Append("; ");
-                }
-
-                isFirst = false;
-
-                stringBuilder.Append(field.Name)
-                    .Append(": ")
-                    .Append(this.ExtractFieldValueOrGetError(packet.Data.AsSpan(), field, definition, definitions!));
-            }
-
-            stringBuilder.Append(")");
-        }
-
-        return (stringBuilder.ToString(), definition);
-    }
-
-    /// <summary>
     /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
     public void Dispose()
@@ -144,11 +100,6 @@ public sealed class PacketAnalyzer : IDisposable
 
         int GetVersion(string name)
         {
-            if (name.EndsWith("Extended", StringComparison.InvariantCulture))
-            {
-                return ExtendedVersionValue;
-            }
-
             var match = Regex.Match(name, "^[A-Za-z]+?([0-9]{3})$");
             if (match.Success)
             {
@@ -333,45 +284,39 @@ public sealed class PacketAnalyzer : IDisposable
         };
     }
 
-    private string ExtractStructureArrayValues(Span<byte> data, Field arrayField, PacketDefinition packet, PacketDefinitions definitions)
+    private string ExtractStructureArrayValues(Span<byte> data, Field field, PacketDefinition packet, PacketDefinitions definitions)
     {
-        var elementType = packet.Structures?.FirstOrDefault(s => s.Name == arrayField.TypeName)
-                   ?? definitions.Structures?.FirstOrDefault(s => s.Name == arrayField.TypeName)
-                   ?? this._commonDefinitions?.Structures?.FirstOrDefault(s => s.Name == arrayField.TypeName);
-        if (elementType is null)
+        var type = packet.Structures?.FirstOrDefault(s => s.Name == field.TypeName)
+                   ?? definitions.Structures?.FirstOrDefault(s => s.Name == field.TypeName)
+                   ?? this._commonDefinitions?.Structures?.FirstOrDefault(s => s.Name == field.TypeName);
+        if (type is null)
         {
-            return data[arrayField.Index..].AsString();
+            return data[field.Index..].AsString();
         }
 
-        var countField = packet.Fields?.FirstOrDefault(f => f.Name == arrayField.ItemCountField)
-                         ?? packet.Structures?.SelectMany(s => s.Fields ?? Enumerable.Empty<Field>()).FirstOrDefault(f => f.Name == arrayField.ItemCountField);
+        var countField = packet.Fields?.FirstOrDefault(f => f.Name == field.ItemCountField)
+                         ?? packet.Structures?.SelectMany(s => s.Fields ?? Enumerable.Empty<Field>()).FirstOrDefault(f => f.Name == field.ItemCountField);
         int count = countField is null ? 0 : int.Parse(this.ExtractFieldValue(data, countField, packet, definitions), CultureInfo.InvariantCulture);
         if (count == 0)
         {
             return string.Empty;
         }
 
-        var typeLength = elementType.Length > 0 ? elementType.Length : this.DetermineFixedStructLength(data, arrayField, elementType, count);
-        var fixedLengthByCount = CalcFixStructLengthBySizeAndCount(data, arrayField, elementType, count);
+        var typeLength = type.Length > 0 ? type.Length : this.DetermineFixedStructLength(data, field, type, count);
         var stringBuilder = new StringBuilder();
-        var restData = data[arrayField.Index..];
+        var restData = data[field.Index..];
 
         for (int i = 0; i < count; i++)
         {
-            var currentLength = typeLength ?? this.DetermineDynamicStructLength(restData, elementType, packet) ?? fixedLengthByCount;
-            if (currentLength is null)
-            {
-                break;
-            }
-
-            var elementData = restData[..currentLength.Value];
-            restData = restData[currentLength.Value..];
+            var currentLength = typeLength ?? this.DetermineDynamicStructLength(restData, type, packet);
+            var elementData = restData[..currentLength];
+            restData = restData[currentLength..];
 
             stringBuilder.Append(Environment.NewLine)
-                .Append(arrayField.Name + $"[{i}]:");
+                .Append(field.Name + $"[{i}]:");
             stringBuilder.Append(Environment.NewLine)
                 .Append("  Raw: ").Append(elementData.AsString());
-            foreach (var structField in elementType.Fields ?? Enumerable.Empty<Field>())
+            foreach (var structField in type.Fields ?? Enumerable.Empty<Field>())
             {
                 stringBuilder.Append(Environment.NewLine)
                     .Append("  ").Append(structField.Name).Append(": ").Append(this.ExtractFieldValue(elementData, structField, packet, definitions));
@@ -397,11 +342,7 @@ public sealed class PacketAnalyzer : IDisposable
         {
             return type.Length;
         }
-        return null;
-    }
 
-    private int? CalcFixStructLengthBySizeAndCount(Span<byte> data, Field field, Structure type, int count)
-    {
         if (type.Fields?.All(f => f.Type != FieldType.StructureArray) ?? false)
         {
             return (data.Length - field.Index) / count;
@@ -418,90 +359,17 @@ public sealed class PacketAnalyzer : IDisposable
     /// <param name="type">The type.</param>
     /// <param name="packetType">Type of the packet.</param>
     /// <returns>The dynamic length of a struct with a nested structure array.</returns>
-    private int? DetermineDynamicStructLength(Span<byte> restData, Structure type, PacketDefinition packetType)
+    private int DetermineDynamicStructLength(Span<byte> restData, Structure type, PacketDefinition packetType)
     {
-        if (type.Fields is null)
+        if (type.Fields is null || packetType.Structures is null)
         {
-            return null;
+            return 0;
         }
 
-        if (packetType.Structures is not null
-            && type.Fields.FirstOrDefault(f => f.Type == FieldType.StructureArray) is { } nestedStructField)
-        {
-
-            var countField = type.Fields.First(f => f.Name == nestedStructField.ItemCountField);
-            var count = restData[countField.Index];
-            var nestedStructType = packetType.Structures.First(s => s.Name == nestedStructField.TypeName);
-            return nestedStructField.Index + (count * nestedStructType.Length);
-
-        }
-        if (this._clientVersionValue == ExtendedVersionValue
-            && type.Fields.FirstOrDefault(f => f.Type == FieldType.Binary) is { } binaryField
-            && binaryField.Name?.EndsWith("ItemData") is true)
-        {
-            return binaryField.Index + DetermineItemSize(restData, binaryField);
-        }
-
-        if (type.Fields.MaxBy(f => f.Index) is { Type: not (FieldType.Binary or FieldType.StructureArray)} lastField)
-        {
-            return lastField.Index + FieldSize(lastField.Type);
-        }
-
-        return null;
-    }
-
-    private int DetermineItemSize(Span<byte> restData, Field binaryField)
-    {
-        var itemData = restData.Slice(binaryField.Index);
-        var size = 5;
-        var options = itemData[4];
-        if ((options & 1) == 1) // Option
-        {
-            size++;
-        }
-
-        if ((options & 8) == 8) // Excellent
-        {
-            size++;
-        }
-
-        if ((options & 0x10) == 0x10) // Ancient
-        {
-            size++;
-        }
-
-        if ((options & 0x20) == 0x20) // Harmony
-        {
-            size++;
-        }
-
-        if ((options & 0x80) == 0x80) // Sockets
-        {
-            size++;
-            var socketCount = itemData[size] & 0xF;
-            size += socketCount;
-        }
-
-        return size;
-    }
-
-    private int FieldSize(FieldType fieldType)
-    {
-        return fieldType switch
-        {
-            FieldType.Byte => 1,
-            FieldType.Boolean => 1,
-            FieldType.IntegerLittleEndian => 4,
-            FieldType.IntegerBigEndian => 4,
-            FieldType.ShortLittleEndian => 2,
-            FieldType.ShortBigEndian => 2,
-            FieldType.LongLittleEndian => 8,
-            FieldType.LongBigEndian => 8,
-            FieldType.Enum => 1,
-            FieldType.StructureArray => 1,
-            FieldType.Float => 4,
-            FieldType.Double => 8,
-            _ => 1,
-        };
+        var nestedStructField = type.Fields.First(f => f.Type == FieldType.StructureArray);
+        var countField = type.Fields.First(f => f.Name == nestedStructField.ItemCountField);
+        var count = restData[countField.Index];
+        var nestedStructType = packetType.Structures.First(s => s.Name == nestedStructField.TypeName);
+        return nestedStructField.Index + (count * nestedStructType.Length);
     }
 }

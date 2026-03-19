@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for quest completion request packets (0xF6, 0x0D identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.QuestCompletionRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.QuestCompletionRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Quest - Completion Request", "Packet handler for quest completion request packets (0xF6, 0x0D identifier)")]
 [Guid("CB8A33FA-0060-43E2-92F7-BE4BC23FE0B8")]
 [BelongsToGroup(QuestGroupHandlerPlugIn.GroupKey)]
 public class QuestCompletionRequestHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly QuestCompletionAction _questCompletionAction = new();
+    private readonly QuestCompletionAction _questCompletionAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

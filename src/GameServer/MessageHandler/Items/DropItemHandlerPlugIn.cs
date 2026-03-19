@@ -14,12 +14,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for drop item packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DropItemHandlerPlugIn_Name), Description = nameof(PlugInResources.DropItemHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("DropItemHandlerPlugIn", "Handler for drop item packets.")]
 [Guid("b79bc453-74a0-4eea-8bc3-014d737aaa88")]
 internal class DropItemHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly DropItemAction _dropAction = new();
+    private readonly DropItemAction _dropAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

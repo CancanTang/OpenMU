@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// Consume handler for gib mana potions.
 /// </summary>
 [Guid("21CB28A4-BE9A-421C-9C7C-6F2E0FC9D614")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LargeManaPotionConsumeHandler_Name), Description = nameof(PlugInResources.LargeManaPotionConsumeHandler_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(LargeManaPotionConsumeHandler), "Plugin which handles the large mana potion consumption.")]
 public class LargeManaPotionConsumeHandler : ManaPotionConsumeHandler
 {
     /// <inheritdoc />

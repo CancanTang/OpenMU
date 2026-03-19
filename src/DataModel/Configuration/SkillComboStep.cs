@@ -27,10 +27,4 @@ public partial class SkillComboStep
     /// Gets or sets the skill of this step.
     /// </summary>
     public virtual Skill? Skill { get; set; }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{this.Order} - {this.Skill}";
-    }
 }

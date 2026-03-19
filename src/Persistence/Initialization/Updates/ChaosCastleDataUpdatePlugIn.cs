@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The chaos castle update plugin.
 /// </summary>
-[PlugIn]
-[Display(Name = PlugInName, Description = PlugInDescription)]
+[PlugIn(PlugInName, PlugInDescription)]
 [Guid("13059991-F3C8-4050-A201-6D6A67E57541")]
 public class ChaosCastleDataUpdatePlugIn : UpdatePlugInBase
 {

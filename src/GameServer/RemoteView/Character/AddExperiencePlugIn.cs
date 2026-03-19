@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IAddExperiencePlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.AddExperiencePlugIn_Name), Description = nameof(PlugInResources.AddExperiencePlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("AddExperiencePlugIn", "The default implementation of the IAddExperiencePlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("cc400edd-3540-4727-9b23-8c0ded4f0b00")]
 public class AddExperiencePlugIn : IAddExperiencePlugIn
 {
@@ -28,7 +27,7 @@ public class AddExperiencePlugIn : IAddExperiencePlugIn
     public AddExperiencePlugIn(RemotePlayer player) => this._player = player;
 
     /// <inheritdoc/>
-    public async ValueTask AddExperienceAsync(int exp, IAttackable? obj, ExperienceType experienceType)
+    public async ValueTask AddExperienceAsync(int exp, IAttackable? obj)
     {
         var remainingExperience = exp;
         ushort damage = 0;

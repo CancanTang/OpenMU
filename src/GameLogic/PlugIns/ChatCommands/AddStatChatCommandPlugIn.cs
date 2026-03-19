@@ -5,6 +5,8 @@
 namespace MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 
 using System.Runtime.InteropServices;
+using MUnique.OpenMU.AttributeSystem;
+using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PlayerActions.Character;
 using MUnique.OpenMU.PlugIns;
 
@@ -12,67 +14,80 @@ using MUnique.OpenMU.PlugIns;
 /// A chat command plugin which handles the command to add stat points.
 /// </summary>
 [Guid("042EC5C6-27C8-4E00-A48B-C5458EDEA0BC")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.AddStatChatCommandPlugIn_Name), Description = nameof(PlugInResources.AddStatChatCommandPlugIn_Description), ResourceType = typeof(PlugInResources))]
-[ChatCommandHelp(Command, typeof(Arguments), MinimumStatus)]
-public class AddStatChatCommandPlugIn : ChatCommandPlugInBase<AddStatChatCommandPlugIn.Arguments>
+[PlugIn("Add Stat chat command", "Handles the chat command '/add (ene|agi|vit|str|cmd) (amount)'. Adds the specified amount of stat points to the specified attribute of the character.")]
+[ChatCommandHelp(Command, "Adds the specified amount of stat points to the specified attribute of the character.", typeof(Arguments), MinimumStatus)]
+public class AddStatChatCommandPlugIn : IChatCommandPlugIn
 {
     private const string Command = "/add";
 
     private const CharacterStatus MinimumStatus = CharacterStatus.Normal;
 
-    private readonly IncreaseStatsAction _action = new();
+    private readonly IncreaseStatsAction _action = new ();
 
     /// <inheritdoc />
-    public override string Key => Command;
+    public string Key => Command;
 
     /// <inheritdoc />
-    public override CharacterStatus MinCharacterStatusRequirement => MinimumStatus;
+    public CharacterStatus MinCharacterStatusRequirement => MinimumStatus;
 
     /// <inheritdoc />
-    protected override async ValueTask DoHandleCommandAsync(Player player, Arguments arguments)
+    public async ValueTask HandleCommandAsync(Player player, string command)
     {
-        if (player.SelectedCharacter is null)
+        try
         {
-            return;
-        }
+            if (player.SelectedCharacter is null)
+            {
+                return;
+            }
 
-        var attribute = await this.TryGetAttributeAsync(player, arguments.StatType).ConfigureAwait(false);
-        if (attribute is null)
+            var arguments = command.ParseArguments<Arguments>();
+            var attribute = this.GetAttribute(player, arguments.StatType);
+            var selectedCharacter = player.SelectedCharacter;
+
+            if (!selectedCharacter.CanIncreaseStats(arguments.Amount))
+            {
+                return;
+            }
+
+            if (player.CurrentMiniGame is not null)
+            {
+                await player.ShowMessageAsync("Adding multiple points is not allowed when playing a mini game.").ConfigureAwait(false);
+                return;
+            }
+
+            await this._action.IncreaseStatsAsync(player, attribute, arguments.Amount).ConfigureAwait(false);
+        }
+        catch (ArgumentException e)
         {
-            return;
+            await player.ShowMessageAsync(e.Message).ConfigureAwait(false);
         }
-
-        var selectedCharacter = player.SelectedCharacter;
-
-        if (!selectedCharacter.CanIncreaseStats(arguments.Amount))
-        {
-            return;
-        }
-
-        if (player.CurrentMiniGame is not null)
-        {
-            await player.ShowLocalizedBlueMessageAsync(PlayerMessage.AddingMultiplePointsWhileMiniGameNotAllowed).ConfigureAwait(false);
-            return;
-        }
-
-        await this._action.IncreaseStatsAsync(player, attribute, arguments.Amount).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Arguments for this command.
-    /// </summary>
-    public class Arguments : ArgumentsBase
+    private AttributeDefinition GetAttribute(Player player, string? statType)
     {
-        /// <summary>
-        /// Gets or sets the type of the stat.
-        /// </summary>
+        var attribute = statType switch
+        {
+            "str" => Stats.BaseStrength,
+            "agi" => Stats.BaseAgility,
+            "vit" => Stats.BaseVitality,
+            "ene" => Stats.BaseEnergy,
+            "cmd" => Stats.BaseLeadership,
+            _ => throw new ArgumentException($"Unknown stat: '{statType}'."),
+        };
+
+        if (player.SelectedCharacter!.Attributes.All(sa => sa.Definition != attribute))
+        {
+            throw new ArgumentException($"The character has no stat attribute '{statType}'.");
+        }
+
+        return attribute;
+    }
+
+    private class Arguments : ArgumentsBase
+    {
         [ValidValues("str", "agi", "vit", "ene", "cmd")]
         public string? StatType { get; set; }
 
-        /// <summary>
-        /// Gets or sets the amount.
-        /// </summary>
         public ushort Amount { get; set; }
     }
 }

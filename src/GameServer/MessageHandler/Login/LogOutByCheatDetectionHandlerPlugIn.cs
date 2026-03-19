@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for logout by cheat packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.LogOutByCheatDetectionHandlerPlugIn_Name), Description = nameof(PlugInResources.LogOutByCheatDetectionHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Logout by cheat handler", "Handler for logout (by cheat) packets.")]
 [Guid("AE611B1E-3E3D-4189-B39C-79696D27BFBD")]
 [BelongsToGroup(LogInOutGroup.GroupKey)]
 public class LogOutByCheatDetectionHandlerPlugIn : ISubPacketHandlerPlugIn

@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// A plugin which shows a message to all players when a player enters the game.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ShowMessageToAllWhenPlayerEnteredWorldPlugIn_Name), Description = nameof(PlugInResources.ShowMessageToAllWhenPlayerEnteredWorldPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(ShowMessageToAllWhenPlayerEnteredWorldPlugIn), "Shows a message to all players when a player enters the game.")]
 [Guid("12784A17-1085-408E-99CE-5233FDA2B177")]
 public class ShowMessageToAllWhenPlayerEnteredWorldPlugIn : IPlayerStateChangedPlugIn
 {
@@ -24,6 +23,6 @@ public class ShowMessageToAllWhenPlayerEnteredWorldPlugIn : IPlayerStateChangedP
             return;
         }
 
-        await player.GameContext.ShowGlobalLocalizedMessageAsync(MessageType.BlueNormal, nameof(PlayerMessage.PlayerEnteredGameMessage), selectedCharacter.Name).ConfigureAwait(false);
+        await player.GameContext.SendGlobalMessageAsync($"{selectedCharacter.Name} entered the game.", MessageType.BlueNormal).ConfigureAwait(false);
     }
 }

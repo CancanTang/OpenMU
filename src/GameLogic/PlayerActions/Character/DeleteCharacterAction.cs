@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Character;
 
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Character;
 using MUnique.OpenMU.Interfaces;
 
@@ -58,7 +59,7 @@ public class DeleteCharacterAction
 
         if (player.GameContext is IGameServerContext gameServerContext && await gameServerContext.GuildServer.GetGuildPositionAsync(character.Id).ConfigureAwait(false) != GuildPosition.Undefined)
         {
-            await player.ShowLocalizedBlueMessageAsync(PlayerMessage.CantDeleteGuildMember).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("Can't delete a guild member. Remove the character from guild first.", MessageType.BlueNormal)).ConfigureAwait(false);
             return CharacterDeleteResult.Unsuccessful;
         }
 

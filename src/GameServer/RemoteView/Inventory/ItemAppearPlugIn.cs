@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IItemAppearPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ItemAppearPlugIn_Name), Description = nameof(PlugInResources.ItemAppearPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ItemAppearPlugIn", "The default implementation of the IItemAppearPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("525105ee-c1bf-4800-b80b-bdcd6c8ce704")]
 public class ItemAppearPlugIn : IItemAppearPlugIn
 {
@@ -45,11 +44,9 @@ public class ItemAppearPlugIn : IItemAppearPlugIn
             {
                 InventorySlot = newItem.ItemSlot,
             };
-            var itemSize = itemSerializer.SerializeItem(packet.ItemData, newItem);
+            itemSerializer.SerializeItem(packet.ItemData, newItem);
 
-            var actualSize = ItemAddedToInventoryRef.GetRequiredSize(itemSize);
-            span.Slice(0, actualSize).SetPacketSize();
-            return actualSize;
+            return size;
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);

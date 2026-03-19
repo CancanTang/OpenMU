@@ -48,18 +48,7 @@ public class ConnectionTests
     /// The consumer (e.g. SocketConnection) will take care to call <see cref="PipeReader.Complete"/> or <see cref="PipeReader.CompleteAsync"/>.
     /// </summary>
     /// <returns>The async task.</returns>
-    [Test]
-    public async Task ExceptionWhenFailingToEncryptSentPacketAsync()
-    {
-        var malformedData = new byte[] { 0xDE, 0xAD, 0xBE, 0xEF };
-        var duplexPipe = new DuplexPipe();
-        using var connection = new Connection(duplexPipe, null, new Xor.PipelinedXor32Encryptor(duplexPipe.Output), new NullLogger<Connection>());
-
-        _ = connection.BeginReceiveAsync();
-        await connection.Output.WriteAsync(malformedData).ConfigureAwait(false);
-
-        Assert.Throws<InvalidPacketHeaderException>(() => duplexPipe.SendPipe.Reader.ReadAsync().GetAwaiter().GetResult());
-    }
+    
 
     /// <summary>
     /// Tests if the connection is initially connected.

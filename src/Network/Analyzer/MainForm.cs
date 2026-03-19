@@ -25,7 +25,6 @@ public partial class MainForm : Form
 
     private readonly Dictionary<ClientVersion, string> _clientVersions = new ()
     {
-        { new ClientVersion(106, 3, ClientLanguage.English), "Extended S6E3 (2.04d)" },
         { new ClientVersion(6, 3, ClientLanguage.English), "S6E3 (1.04d)" },
         { new ClientVersion(1, 0, ClientLanguage.Invariant), "Season 1 - 6" },
         { new ClientVersion(0, 97, ClientLanguage.Invariant), "0.97" },
@@ -59,8 +58,16 @@ public partial class MainForm : Form
         this._analyzer = new PacketAnalyzer();
         this.Disposed += (_, _) => this._analyzer.Dispose();
 
-        this.clientVersionComboBox.SelectedIndexChanged += OnSelectedClientVersionChanged;
-        this.clientVersionComboBox.DataSource = new BindingSource(this._clientVersions, string.Empty);
+        this.clientVersionComboBox.SelectedIndexChanged += (_, _) =>
+        {
+            if (this._clientListener is { } listener)
+            {
+                listener.ClientVersion = this.SelectedClientVersion;
+            }
+
+            this._analyzer.ClientVersion = this.SelectedClientVersion;
+        };
+        this.clientVersionComboBox.DataSource = new BindingSource(this._clientVersions, null);
         this.clientVersionComboBox.DisplayMember = "Value";
         this.clientVersionComboBox.ValueMember = "Key";
 
@@ -198,10 +205,6 @@ public partial class MainForm : Form
         if (this._unfilteredList is { } oldList)
         {
             oldList.ListChanged -= this.OnUnfilteredListChanged;
-            foreach (var packet in oldList)
-            {
-                packet.AnalyzingRequested -= this.OnPacketAnalyzingRequested;
-            }
         }
 
         this._unfilteredList = this.SelectedConnection?.PacketList;
@@ -211,17 +214,6 @@ public partial class MainForm : Form
             return;
         }
 
-        foreach (var packet in this._unfilteredList)
-        {
-            packet.AnalyzingRequested += this.OnPacketAnalyzingRequested;
-            if (packet.AnalyzedByVersion != this.SelectedClientVersion)
-            {
-                packet.ClearMessage();
-            }
-        }
-
-        this._unfilteredList.ListChanged += this.OnUnfilteredListChanged;
-
         if (this._filterExpression is null)
         {
             this.packetBindingSource.DataSource = this.SelectedConnection?.PacketList;
@@ -229,18 +221,14 @@ public partial class MainForm : Form
         else
         {
             this.packetBindingSource.DataSource = this._unfilteredList.AsQueryable().Where(this._filterExpression).ToList();
+            this._unfilteredList.ListChanged += this.OnUnfilteredListChanged;
         }
-    }
-
-    private void OnPacketAnalyzingRequested(object? sender, Packet.AnalyzingRequestedEventArgs e)
-    {
-        e.ClientVersion = this._analyzer.ClientVersion;
-        (e.Message, e.Definition) = this._analyzer.ExtractShortInformation(e.Packet);
     }
 
     private void OnUnfilteredListChanged(object? sender, ListChangedEventArgs e)
     {
         if (e.ListChangedType != ListChangedType.ItemAdded
+            || this._filterMethod is not { } filter
             || this._unfilteredList is not { } sourceList
             || this._unfilteredList?.Count < e.NewIndex
             || e.NewIndex < 0)
@@ -249,31 +237,13 @@ public partial class MainForm : Form
         }
 
         var newPacket = sourceList[e.NewIndex];
-        newPacket.AnalyzingRequested += this.OnPacketAnalyzingRequested;
-        
-        if (this._filterMethod is { } filter
-            && filter.DynamicInvoke(newPacket) is true)
+
+        if (filter.DynamicInvoke(newPacket) is true)
         {
             this.packetBindingSource.Add(newPacket);
         }
     }
 
-    private void OnSelectedClientVersionChanged(object? o, EventArgs eventArgs)
-    {
-        if (this._clientListener is { } listener)
-        {
-            listener.ClientVersion = this.SelectedClientVersion;
-        }
-
-        this._analyzer.ClientVersion = this.SelectedClientVersion;
-        if (this._unfilteredList is { } unfilteredList)
-        {
-            foreach (var packet in unfilteredList)
-            {
-                packet.ClearMessage();
-            }
-        }
-    }
     private void OnPacketFilterStringChanged(object? sender, AdvancedDataGridView.FilterEventArgs e)
     {
         try
@@ -294,10 +264,6 @@ public partial class MainForm : Form
             this._clientListener.Stop();
             this._clientListener = null;
             this.btnStartProxy.Text = "Start Proxy";
-            this.listenerPortNumericUpDown.Enabled = true;
-            this.targetPortNumericUpDown.Enabled = true;
-            this.targetHostTextBox.Enabled = true;
-            this.clientVersionComboBox.Enabled = true;
             return;
         }
 
@@ -316,10 +282,6 @@ public partial class MainForm : Form
         this._clientListener.ClientConnected += this.ClientListenerOnClientConnected;
         this._clientListener.Start();
         this.btnStartProxy.Text = "Stop Proxy";
-        this.listenerPortNumericUpDown.Enabled = false;
-        this.targetPortNumericUpDown.Enabled = false;
-        this.targetHostTextBox.Enabled = false;
-        this.clientVersionComboBox.Enabled = false;
     }
 
     private void ClientListenerOnClientConnected(object? sender, ClientConnectedEventArgs e)

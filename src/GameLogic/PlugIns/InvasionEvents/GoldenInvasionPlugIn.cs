@@ -10,8 +10,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// This plugin enables Golden Invasion feature.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.GoldenInvasionPlugIn_Name), Description = nameof(PlugInResources.GoldenInvasionPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(GoldenInvasionPlugIn), "Handle Golden Invasion event")]
 [Guid("06D18A9E-2919-4C17-9DBC-6E4F7756495C")]
 public class GoldenInvasionPlugIn : BaseInvasionPlugIn<PeriodicInvasionConfiguration>, ISupportDefaultCustomConfiguration
 {
@@ -34,17 +33,18 @@ public class GoldenInvasionPlugIn : BaseInvasionPlugIn<PeriodicInvasionConfigura
     public GoldenInvasionPlugIn()
         : base(
             MapEventType.GoldenDragonInvasion,
-            [
-                new(GoldenBudgeDragonId, 20, MapId: LorenciaId),
-                new(GoldenGoblinId, 20, MapId: NoriaId),
-                new(GoldenSoldierId, 20, MapId: DeviasId),
-                new(GoldenTitanId, 10, MapId: DeviasId),
-                new(GoldenVeparId, 20, MapId: AtlansId),
-                new(GoldenLizardKingId, 10, MapId: AtlansId),
-                new(GoldenWheelId, 20, MapId: TarkanId),
-                new(GoldenTantallosId, 10, MapId: TarkanId),
-            ],
-            [new(GoldenDragonId, 10)])
+            new (ushort MapId, ushort MonsterId, ushort Count)[]
+            {
+                (LorenciaId, GoldenBudgeDragonId, 20),
+                (NoriaId, GoldenGoblinId, 20),
+                (DeviasId, GoldenSoldierId, 20),
+                (DeviasId, GoldenTitanId, 10),
+                (AtlansId, GoldenVeparId, 20),
+                (AtlansId, GoldenLizardKingId, 10),
+                (TarkanId, GoldenWheelId, 20),
+                (TarkanId, GoldenTantallosId, 10),
+            },
+            new (ushort MonsterId, ushort Count)[] { (GoldenDragonId, 10) })
     {
     }
 

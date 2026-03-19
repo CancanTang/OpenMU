@@ -15,15 +15,14 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for devil square enter request packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DevilSquareEnterHandlerPlugIn_Name), Description = nameof(PlugInResources.DevilSquareEnterHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(DevilSquareEnterHandlerPlugIn), "Handler for devil square enter packets.")]
 [Guid("550FFF1B-E31C-44BA-8CC9-100D5649CC87")]
 internal class DevilSquareEnterHandlerPlugIn : IPacketHandlerPlugIn
 {
     /// <summary>
     /// The game action which contains the logic to enter the mini game.
     /// </summary>
-    private readonly EnterMiniGameAction _enterAction = new();
+    private readonly EnterMiniGameAction _enterAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

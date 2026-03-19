@@ -2,15 +2,15 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using MUnique.OpenMU.DataModel;
+
 namespace MUnique.OpenMU.Persistence.EntityFramework;
 
 using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
-using MUnique.OpenMU.DataModel;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.EntityFramework.Json;
 using MUnique.OpenMU.Persistence.EntityFramework.Model;
@@ -52,22 +52,20 @@ internal class ConfigurationTypeRepository<T> : IRepository<T>, IConfigurationTy
     /// Gets all objects by using the <see cref="_collectionSelector"/> to the current <see cref="GameConfiguration"/>.
     /// </summary>
     /// <returns>All objects of the repository.</returns>
-    public ValueTask<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    public ValueTask<IEnumerable<T>> GetAllAsync()
     {
         return ValueTask.FromResult<IEnumerable<T>>(this._collectionSelector(this.GetCurrentGameConfiguration()));
     }
 
     /// <inheritdoc/>
-    async ValueTask<IEnumerable> IRepository.GetAllAsync(CancellationToken cancellationToken = default)
+    async ValueTask<IEnumerable> IRepository.GetAllAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        return await this.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        return await this.GetAllAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public ValueTask<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public ValueTask<T?> GetByIdAsync(Guid id)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         this.EnsureCacheForCurrentConfiguration();
 
         var dictionary = this._cache[this.GetCurrentGameConfiguration()];
@@ -76,7 +74,7 @@ internal class ConfigurationTypeRepository<T> : IRepository<T>, IConfigurationTy
             return ValueTask.FromResult<T?>(result);
         }
 
-        return ValueTask.FromResult<T?>(null);
+        throw new InvalidDataException($"The object of {typeof(T).Name} with the specified id {id} could not be found in the game configuration");
     }
 
     /// <inheritdoc />
@@ -95,18 +93,19 @@ internal class ConfigurationTypeRepository<T> : IRepository<T>, IConfigurationTy
     /// <inheritdoc />
     public async ValueTask<bool> DeleteAsync(Guid id)
     {
-        if (await this.GetByIdAsync(id).ConfigureAwait(false) is { } obj)
+        var obj = await this.GetByIdAsync(id).ConfigureAwait(false);
+        if (obj is null)
         {
-            return await this.DeleteAsync(obj).ConfigureAwait(false);
+            return false;
         }
 
-        return false;
+        return await this.DeleteAsync(obj).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    async ValueTask<object?> IRepository.GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    async ValueTask<object?> IRepository.GetByIdAsync(Guid id)
     {
-        return await this.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        return await this.GetByIdAsync(id).ConfigureAwait(false);
     }
 
     /// <summary>

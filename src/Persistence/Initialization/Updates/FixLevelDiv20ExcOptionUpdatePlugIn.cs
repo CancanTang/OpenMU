@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The chaos castle update plugin.
 /// </summary>
-[PlugIn]
-[Display(Name = PlugInName, Description = PlugInDescription)]
+[PlugIn(PlugInName, PlugInDescription)]
 [Guid("B0F275DC-B3C2-4826-8263-FFDC8A8AFAEA")]
 public class FixLevelDiv20ExcOptionUpdatePlugIn : UpdatePlugInBase
 {

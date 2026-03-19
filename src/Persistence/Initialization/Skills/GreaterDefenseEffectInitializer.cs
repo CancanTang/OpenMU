@@ -37,13 +37,15 @@ public class GreaterDefenseEffectInitializer : InitializerBase
         magicEffect.Duration = this.Context.CreateNew<PowerUpDefinitionValue>();
         magicEffect.Duration.ConstantValue.Value = 60; // 60 Seconds
 
-        // The buff gives 2 + (energy / 8) defense
         var powerUpDefinition = this.Context.CreateNew<PowerUpDefinition>();
         magicEffect.PowerUpDefinitions.Add(powerUpDefinition);
-        powerUpDefinition.TargetAttribute = Stats.DefenseFinal.GetPersistent(this.GameConfiguration);
+
+        powerUpDefinition.TargetAttribute = Stats.DefenseBase.GetPersistent(this.GameConfiguration);
+
+        // The buff gives 2 + (energy / 8) defense
         powerUpDefinition.Boost = this.Context.CreateNew<PowerUpDefinitionValue>();
         powerUpDefinition.Boost.ConstantValue.Value = 2f;
-        powerUpDefinition.Boost.ConstantValue.AggregateType = AggregateType.AddFinal;
+        powerUpDefinition.Boost.ConstantValue.AggregateType = AggregateType.AddRaw;
 
         var boostPerEnergy = this.Context.CreateNew<AttributeRelationship>();
         boostPerEnergy.InputAttribute = Stats.TotalEnergy.GetPersistent(this.GameConfiguration);

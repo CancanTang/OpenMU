@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for quest select request packets (0xF6, 0x0A identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.QuestSelectRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.QuestSelectRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Quest - Select Request", "Packet handler for quest select request packets (0xF6, 0x0A identifier)")]
 [Guid("EF771EB5-9BC6-4DF3-BB0E-EADAB4295292")]
 [BelongsToGroup(QuestGroupHandlerPlugIn.GroupKey)]
 public class QuestSelectRequestHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly QuestSelectAction _questSelectAction = new();
+    private readonly QuestSelectAction _questSelectAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

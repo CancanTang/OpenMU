@@ -441,11 +441,6 @@ public sealed class ChaosCastleContext : MiniGameContext
         {
             this.Logger.LogError(ex, "Unexpected error during update chaos castle status: {0}", ex.Message);
         }
-        finally
-        {
-            this._remainingTime = TimeSpan.Zero;
-            this._currentCastleStatus = ChaosCastleStatus.Ended;
-        }
     }
 
     private bool HasGameEnded()

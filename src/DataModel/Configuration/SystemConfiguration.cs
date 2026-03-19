@@ -75,10 +75,4 @@ public partial class SystemConfiguration
         Description = nameof(Resources.SystemConfiguration_ReadConsoleInput_Description),
         ResourceType = typeof(Resources))]
     public bool ReadConsoleInput { get; set; }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return "System Configuration";
-    }
 }

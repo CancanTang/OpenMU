@@ -42,8 +42,6 @@ public partial class MainForm : Form
         }
     }
 
-    private BindingList<ClientResolution> Resolutions { get; set; } = new(LauncherSettings.DefaultResolutions);
-
     /// <summary>
     /// Launches the MU Online client (main.exe) to connect to the configured address.
     /// </summary>
@@ -90,14 +88,6 @@ public partial class MainForm : Form
             {
                 this.MainExePathTextBox.Text = launcherSettings.MainExePath;
                 this.Hosts = new BindingList<ServerHostSettings>(launcherSettings.Hosts);
-                if (launcherSettings.AvailableResolutions?.Any() is true)
-                {
-                    this.Resolutions = new(launcherSettings.AvailableResolutions);
-                }
-                else
-                {
-                    this.Resolutions = new(LauncherSettings.DefaultResolutions);
-                }
             }
 
             file.Close();
@@ -105,7 +95,7 @@ public partial class MainForm : Form
         catch
         {
             this.Hosts.Clear();
-            this.Hosts.Add(new ServerHostSettings { Description = "Local ConnectServer", Address = "localhost", Port = 44405 });
+            this.Hosts.Add(new ServerHostSettings { Description = "Local ConnectServer", Address = "localhost", Port = 44405});
             this.Hosts.Add(new ServerHostSettings { Description = "Local GameServer 1", Address = "localhost", Port = 55901 });
         }
     }
@@ -116,7 +106,6 @@ public partial class MainForm : Form
         {
             Hosts = this._hostsBindingList.ToList(),
             MainExePath = this.MainExePathTextBox.Text,
-            AvailableResolutions = this.Resolutions.ToList(),
         };
 
         var writer = new XmlSerializer(typeof(LauncherSettings));
@@ -139,7 +128,6 @@ public partial class MainForm : Form
         if (OperatingSystem.IsWindows())
         {
             using var configDialog = new ClientSettingsDialog();
-            configDialog.Resolutions = this.Resolutions;
             configDialog.ShowDialog(this);
         }
         else

@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for npc item buy requests.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.BuyNpcItemHandlerPlugIn_Name), Description = nameof(PlugInResources.BuyNpcItemHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("BuyNpcItemHandlerPlugIn", "Handler for npc item buy requests.")]
 [Guid("7c7a0944-341b-4cdf-a9b2-010c0c95fa41")]
 internal class BuyNpcItemHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly BuyNpcItemAction _buyAction = new();
+    private readonly BuyNpcItemAction _buyAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

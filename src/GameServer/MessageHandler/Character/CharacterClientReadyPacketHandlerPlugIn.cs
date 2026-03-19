@@ -11,8 +11,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Sub packet handler for 'client ready' packets which are sent by the client after map changes.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CharacterClientReadyPacketHandlerPlugIn_Name), Description = nameof(PlugInResources.CharacterClientReadyPacketHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Character - Client ready", "Packet handler for 'client ready' packets (0xF3, 0x12 identifier) which are sent after map changes.")]
 [Guid("8FB0AD6B-B3A6-4BF7-865B-EB4DF3C2A52F")]
 [BelongsToGroup(CharacterGroupHandlerPlugIn.GroupKey)]
 internal class CharacterClientReadyPacketHandlerPlugIn : ISubPacketHandlerPlugIn

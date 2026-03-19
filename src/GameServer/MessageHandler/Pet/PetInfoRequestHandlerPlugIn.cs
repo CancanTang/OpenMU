@@ -16,8 +16,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for pet info request packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PetInfoRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.PetInfoRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(PetInfoRequestHandlerPlugIn), "Handler for pet info request packets.")]
 [Guid("DA535FF5-A23D-4C36-877F-73D1D811F146")]
 [MinimumClient(0, 97, ClientLanguage.Invariant)]
 internal class PetInfoRequestHandlerPlugIn : IPacketHandlerPlugIn
@@ -34,7 +33,7 @@ internal class PetInfoRequestHandlerPlugIn : IPacketHandlerPlugIn
     public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
     {
         PetInfoRequest message = packet;
-        await this._requestAction.RequestPetInfoAsync(player, message.ItemSlot, ConvertStorageLocation(message.Storage)).ConfigureAwait(false);
+        await this._requestAction.RequestPetInfo(player, message.ItemSlot, ConvertStorageLocation(message.Storage)).ConfigureAwait(false);
     }
 
     private static PetStorageLocation ConvertStorageLocation(StorageType location)

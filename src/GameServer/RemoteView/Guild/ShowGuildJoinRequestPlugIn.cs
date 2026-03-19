@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IShowGuildJoinRequestPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ShowGuildJoinRequestPlugIn_Name), Description = nameof(PlugInResources.ShowGuildJoinRequestPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ShowGuildJoinRequestPlugIn", "The default implementation of the IShowGuildJoinRequestPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("521ff03d-c8ad-44d9-a23d-8f98c4c174ae")]
 public class ShowGuildJoinRequestPlugIn : IShowGuildJoinRequestPlugIn
 {

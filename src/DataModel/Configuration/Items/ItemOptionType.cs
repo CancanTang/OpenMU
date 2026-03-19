@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.DataModel.Configuration.Items;
 
 using MUnique.OpenMU.Annotations;
-using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Type of an item option.
@@ -22,12 +21,12 @@ public partial class ItemOptionType
     /// <summary>
     /// Gets or sets the name.
     /// </summary>
-    public LocalizedString Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the description.
     /// </summary>
-    public LocalizedString Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets a value indicating whether this item option is visible to other players.

@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// This update adds the <see cref="Stats.PointsPerReset"/>.
 /// </summary>
-[PlugIn]
-[Display(Name = PlugInName, Description = PlugInDescription)]
+[PlugIn(PlugInName, PlugInDescription)]
 [Guid("6011A1B8-7FA5-48EB-935D-EEAF83017799")]
 public class AddPointsPerResetAttributePlugIn : UpdatePlugInBase
 {

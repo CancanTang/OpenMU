@@ -6,7 +6,6 @@ namespace MUnique.OpenMU.Web.AdminPanel;
 
 using System.IO;
 using Blazored.Modal;
-using Blazored.Toast;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -14,10 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using MUnique.OpenMU.DataModel.Entities;
-using MUnique.OpenMU.Web.AdminPanel.Components;
-using MUnique.OpenMU.Web.Shared;
-using MUnique.OpenMU.Web.Shared.Models;
-using MUnique.OpenMU.Web.Shared.Services;
+using MUnique.OpenMU.Web.AdminPanel.Models;
+using MUnique.OpenMU.Web.AdminPanel.Services;
 
 /// <summary>
 /// The startup class for the blazor app.
@@ -51,8 +48,8 @@ public class Startup
     /// <param name="services">The service collection.</param>
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddRazorComponents()
-            .AddInteractiveServerComponents();
+        services.AddRazorPages();
+        services.AddServerSideBlazor();
 
         services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new TimeSpanConverter()));
 
@@ -61,7 +58,6 @@ public class Startup
                 setup.FeatureProviders.Add(new GenericControllerFeatureProvider()));
 
         services.AddBlazoredModal();
-        services.AddBlazoredToast();
         services.AddScoped<AccountService>();
         services.AddScoped<IDataService<Account>>(serviceProvider => serviceProvider.GetService<AccountService>()!);
 
@@ -86,7 +82,7 @@ public class Startup
         }
         else
         {
-            app.UseExceptionHandler("/Error", createScopeForErrors: true);
+            app.UseExceptionHandler("/Error");
 
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
@@ -100,13 +96,13 @@ public class Startup
             RequestPath = "/logs",
         });
 
-        app.UseAntiforgery();
+        app.UseRouting();
 
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+            endpoints.MapBlazorHub();
             endpoints.MapControllers();
+            endpoints.MapFallbackToPage("/_Host");
         });
     }
 }

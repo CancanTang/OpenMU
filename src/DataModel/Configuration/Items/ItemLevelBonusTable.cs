@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.DataModel.Configuration.Items;
 
 using MUnique.OpenMU.Annotations;
-using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Defines a table of item level related bonus values for <see cref="ItemBasePowerUpDefinition"/>s.
@@ -16,12 +15,12 @@ public partial class ItemLevelBonusTable
     /// <summary>
     /// Gets or sets the name.
     /// </summary>
-    public LocalizedString Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the description.
     /// </summary>
-    public LocalizedString Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the bonus per level.

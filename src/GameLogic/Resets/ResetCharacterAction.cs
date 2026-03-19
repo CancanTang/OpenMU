@@ -7,9 +7,10 @@ namespace MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions;
-using MUnique.OpenMU.GameLogic.Views.Character;
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Login;
 using MUnique.OpenMU.GameLogic.Views.NPC;
+using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Action to reset a character.
@@ -18,7 +19,7 @@ public class ResetCharacterAction
 {
     private readonly Player _player;
     private readonly NonPlayerCharacter? _npc;
-    private readonly LogoutAction _logoutAction = new();
+    private readonly LogoutAction _logoutAction = new ();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ResetCharacterAction"/> class.
@@ -39,38 +40,38 @@ public class ResetCharacterAction
         var resetFeature = this._player.GameContext.FeaturePlugIns.GetPlugIn<ResetFeaturePlugIn>();
         if (resetFeature is null)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.ResetNotEnabled)).ConfigureAwait(false);
+            await this.ShowMessageAsync("Reset is not enabled.").ConfigureAwait(false);
             return;
         }
 
         if (this._player.PlayerState.CurrentState != PlayerState.EnteredWorld && this._npc is null)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.CantResetWithOpenedWindows)).ConfigureAwait(false);
+            await this.ShowMessageAsync("Cannot do reset with any windows opened.").ConfigureAwait(false);
             return;
         }
 
         if (this._player.Attributes is null || this._player.SelectedCharacter is null)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.NotEnteredTheGame)).ConfigureAwait(false);
+            await this.ShowMessageAsync("Not entered the game.").ConfigureAwait(false);
             return;
         }
 
         var configuration = resetFeature.Configuration;
         if (configuration is null)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.ResetNotConfigured)).ConfigureAwait(false);
+            await this.ShowMessageAsync("Reset is not configured.").ConfigureAwait(false);
             return;
         }
 
         if (this._player.Level < configuration.RequiredLevel)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.RequiredLevelForReset), configuration.RequiredLevel).ConfigureAwait(false);
+            await this.ShowMessageAsync($"Required level for reset is {configuration.RequiredLevel}.").ConfigureAwait(false);
             return;
         }
 
         if (configuration.ResetLimit > 0 && (this.GetResetCount() + 1) > configuration.ResetLimit)
         {
-            await this.ShowMessageAsync(nameof(PlayerMessage.MaximumResetsReached), configuration.ResetLimit).ConfigureAwait(false);
+            await this.ShowMessageAsync($"Maximum resets of {configuration.ResetLimit} reached.").ConfigureAwait(false);
             return;
         }
 
@@ -83,32 +84,20 @@ public class ResetCharacterAction
         this._player.Attributes[Stats.Level] = configuration.LevelAfterReset;
         this._player.SelectedCharacter.Experience = 0;
         this.UpdateStats(configuration);
-        if (configuration.MoveHome)
-        {
-            await this.MoveHomeAsync().ConfigureAwait(false);
-        }
+        await this.MoveHomeAsync().ConfigureAwait(false);
+        await this._logoutAction.LogoutAsync(this._player, LogoutType.BackToCharacterSelection).ConfigureAwait(false);
+    }
 
-        if (configuration.LogOut)
+    private ValueTask ShowMessageAsync(string message)
+    {
+        if (this._npc is null)
         {
-            await this._logoutAction.LogoutAsync(this._player, LogoutType.BackToCharacterSelection).ConfigureAwait(false);
+            return this._player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(message, MessageType.BlueNormal));
         }
         else
         {
-            await this.UpdateClientStatsAsync(configuration).ConfigureAwait(false);
+            return this._player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync(message, this._npc));
         }
-    }
-
-    private async ValueTask ShowMessageAsync(string messageKey, params object?[] args)
-    {
-        var message = this._player.GetLocalizedMessage(messageKey, args);
-
-        if (this._npc is null)
-        {
-            await this._player.ShowBlueMessageAsync(message).ConfigureAwait(false);
-            return;
-        }
-
-        await this._player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync(message, this._npc)).ConfigureAwait(false);
     }
 
     private int GetResetCount()
@@ -135,7 +124,7 @@ public class ResetCharacterAction
 
     private void UpdateStats(ResetConfiguration configuration)
     {
-        var calculatedPointsPerReset = Math.Max(0, this.GetResetPoints(configuration));
+        var calculatedPointsPerReset = this.GetResetPoints(configuration);
         if (configuration.MultiplyPointsByResetCount)
         {
             calculatedPointsPerReset *= this.GetResetCount();
@@ -148,14 +137,7 @@ public class ResetCharacterAction
                 .ForEach(s => this._player.Attributes![s.Attribute] = s.BaseValue);
         }
 
-        if (configuration.ReplacePointsPerReset)
-        {
-            this._player.SelectedCharacter!.LevelUpPoints = calculatedPointsPerReset;
-        }
-        else
-        {
-            this._player.SelectedCharacter!.LevelUpPoints += calculatedPointsPerReset;
-        }
+        this._player.SelectedCharacter!.LevelUpPoints = Math.Max(0, calculatedPointsPerReset);
     }
 
     private int GetResetPoints(ResetConfiguration configuration)
@@ -180,15 +162,5 @@ public class ResetCharacterAction
             this._player.SelectedCharacter.CurrentMap = spawnGate.Map;
             this._player.Rotation = spawnGate.Direction;
         }
-    }
-
-    private async ValueTask UpdateClientStatsAsync(ResetConfiguration configuration)
-    {
-        if (configuration.ResetStats)
-        {
-            await this._player.InvokeViewPlugInAsync<IUpdateCharacterBaseStatsPlugIn>(p => p.UpdateCharacterBaseStatsAsync()).ConfigureAwait(false);
-        }
-
-        await this._player.InvokeViewPlugInAsync<IUpdateLevelPlugIn>(p => p.UpdateLevelAsync()).ConfigureAwait(false);
     }
 }

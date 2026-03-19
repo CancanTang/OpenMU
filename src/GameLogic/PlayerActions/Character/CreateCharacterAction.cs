@@ -7,7 +7,9 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.Character;
 using System.Text.RegularExpressions;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Character;
+using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Action to create a new character in the character selection screen.
@@ -92,7 +94,7 @@ public class CreateCharacterAction
         player.GameContext.PlugInManager.GetPlugInPoint<ICharacterCreatedPlugIn>()?.CharacterCreated(player, character);
         try
         {
-            await player.SaveProgressAsync().ConfigureAwait(false);
+            await player.PersistenceContext.SaveChangesAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -102,7 +104,7 @@ public class CreateCharacterAction
             var message = ex.InnerException?.Message ?? ex.Message;
             if (message.Contains("IX_Character_Name") || message.Contains("23505"))
             {
-                await player.ShowLocalizedBlueMessageAsync(PlayerMessage.CharacterWithNameAlreadyExists).ConfigureAwait(false);
+                await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync("A character with the same name already exists.", MessageType.BlueNormal)).ConfigureAwait(false);
             }
 
             return null;

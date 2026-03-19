@@ -36,7 +36,4 @@ internal class DuelArena : BaseMapInitializer
 
     /// <inheritdoc/>
     protected override string MapName => Name;
-
-    /// <inheritdoc/>
-    protected override byte SafezoneMapNumber => Lorencia.Number;
 }

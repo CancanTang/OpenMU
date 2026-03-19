@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.DataModel.Configuration.Items;
 
 using MUnique.OpenMU.Annotations;
-using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// The definition of an item option.
@@ -16,7 +15,7 @@ public partial class ItemOptionDefinition
     /// <summary>
     /// Gets or sets the name of the option, for example "Luck", "Skill", "Normal Option".
     /// </summary>
-    public LocalizedString Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets a value indicating whether this option adds randomly.

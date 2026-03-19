@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for walk packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CharacterWalkHandlerPlugIn075_Name), Description = nameof(PlugInResources.CharacterWalkHandlerPlugIn075_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Character walk handler", "Packet handler for walk packets.")]
 [Guid("9FD41038-39D9-4D3D-A1DD-A87DB6388248")]
 [MinimumClient(0, 75, ClientLanguage.Invariant)]
 internal class CharacterWalkHandlerPlugIn075 : CharacterWalkBaseHandlerPlugIn

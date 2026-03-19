@@ -120,6 +120,61 @@ public class MapInitializer : IMapInitializer
         this._logger.LogDebug("Finished creating monster instances for map {createdMap}", createdMap);
     }
 
+    private void RegisterForConfigChanges(GameMap createdMap, MonsterSpawnArea spawnArea, NonPlayerCharacter spawnedObject)
+    {
+        this._configurationChangeMediator?.RegisterObject(
+            spawnArea,
+            spawnedObject,
+            async (unregisterAction, area, o) =>
+            {
+                if (area.Quantity < o.SpawnIndex + 1)
+                {
+                    await o.DisposeAsync().ConfigureAwait(false);
+                    unregisterAction();
+                    this._spawnedMonsters.AddOrUpdate(spawnArea, spawnArea.Quantity, (_, _) => spawnArea.Quantity);
+                    return;
+                }
+
+                await createdMap.RemoveAsync(o).ConfigureAwait(false);
+                o.Initialize();
+                await createdMap.AddAsync(o).ConfigureAwait(false);
+                o.OnSpawn();
+
+                if (this._spawnedMonsters.TryGetValue(area, out var previousSpawnCount))
+                {
+                    for (int i = previousSpawnCount; i < area.Quantity; i++)
+                    {
+                        await this.InitializeSpawnAsync(i, createdMap, area).ConfigureAwait(false);
+                    }
+
+                    this._spawnedMonsters.AddOrUpdate(spawnArea, spawnArea.Quantity, (_, _) => spawnArea.Quantity);
+                }
+            },
+            async (_, o) =>
+            {
+                await o.DisposeAsync().ConfigureAwait(false);
+                this._spawnedMonsters.TryRemove(spawnArea, out var _);
+            });
+
+        if (spawnedObject.Definition.MerchantStore is { } merchantStore)
+        {
+            this._configurationChangeMediator?.RegisterObject(merchantStore, spawnedObject, async (_, itemStorage, o) =>
+            {
+                await o.ForEachObservingAsync<Player>(
+                    async player =>
+                    {
+                        if (player.OpenedNpc == o)
+                        {
+                            await player.InvokeViewPlugInAsync<IShowMerchantStoreItemListPlugIn>(
+                                    plugin => plugin.ShowMerchantStoreItemListAsync(itemStorage.Items, StoreKind.Normal))
+                                .ConfigureAwait(false);
+                        }
+                    },
+                    false).ConfigureAwait(false);
+            });
+        }
+    }
+
     /// <summary>
     /// Initializes the event NPCs of the previously created game map.
     /// </summary>
@@ -261,77 +316,6 @@ public class MapInitializer : IMapInitializer
         return definition.BattleZone?.Type == BattleType.Soccer
             ? new SoccerGameMap(definition, this._configuration.ItemDropDuration, this.ChunkSize)
             : new GameMap(definition, this._configuration.ItemDropDuration, this.ChunkSize);
-    }
-
-    private void RegisterForConfigChanges(GameMap createdMap, MonsterSpawnArea spawnArea, NonPlayerCharacter spawnedObject)
-    {
-        this._configurationChangeMediator?.RegisterObject(
-            spawnArea,
-            spawnedObject,
-            async (unregisterAction, area, o) =>
-            {
-                if (area.Quantity < o.SpawnIndex + 1)
-                {
-                    await o.DisposeAsync().ConfigureAwait(false);
-                    unregisterAction();
-                    this._spawnedMonsters.AddOrUpdate(spawnArea, spawnArea.Quantity, (_, _) => spawnArea.Quantity);
-                    return;
-                }
-
-                // If the monster definition changed, we need to spawn a completely new NPC
-                // because MonsterAttributeHolder caches stats from the definition at construction time.
-                if (area.MonsterDefinition != o.Definition)
-                {
-                    await o.DisposeAsync().ConfigureAwait(false);
-                    unregisterAction();
-                    var newNpc = await this.InitializeSpawnAsync(o.SpawnIndex, createdMap, area).ConfigureAwait(false);
-                    if (newNpc is not null)
-                    {
-                        this._spawnedMonsters.AddOrUpdate(spawnArea, spawnArea.Quantity, (_, _) => spawnArea.Quantity);
-                        this.RegisterForConfigChanges(createdMap, area, newNpc);
-                    }
-
-                    return;
-                }
-
-                await createdMap.RemoveAsync(o).ConfigureAwait(false);
-                o.Initialize();
-                await createdMap.AddAsync(o).ConfigureAwait(false);
-                o.OnSpawn();
-
-                if (this._spawnedMonsters.TryGetValue(area, out var previousSpawnCount))
-                {
-                    for (int i = previousSpawnCount; i < area.Quantity; i++)
-                    {
-                        await this.InitializeSpawnAsync(i, createdMap, area).ConfigureAwait(false);
-                    }
-
-                    this._spawnedMonsters.AddOrUpdate(spawnArea, spawnArea.Quantity, (_, _) => spawnArea.Quantity);
-                }
-            },
-            async (_, o) =>
-            {
-                await o.DisposeAsync().ConfigureAwait(false);
-                this._spawnedMonsters.TryRemove(spawnArea, out var _);
-            });
-
-        if (spawnedObject.Definition.MerchantStore is { } merchantStore)
-        {
-            this._configurationChangeMediator?.RegisterObject(merchantStore, spawnedObject, async (_, itemStorage, o) =>
-            {
-                await o.ForEachObservingAsync<Player>(
-                    async player =>
-                    {
-                        if (player.OpenedNpc == o)
-                        {
-                            await player.InvokeViewPlugInAsync<IShowMerchantStoreItemListPlugIn>(
-                                    plugin => plugin.ShowMerchantStoreItemListAsync(itemStorage.Items, StoreKind.Normal))
-                                .ConfigureAwait(false);
-                        }
-                    },
-                    false).ConfigureAwait(false);
-            });
-        }
     }
 
     private INpcIntelligence? TryCreateConfiguredNpcIntelligence(MonsterDefinition monsterDefinition, GameMap createdMap)

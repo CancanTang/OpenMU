@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IRequestedTradeMoneyHasBeenSetPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.RequestedTradeMoneyHasBeenSetPlugIn_Name), Description = nameof(PlugInResources.RequestedTradeMoneyHasBeenSetPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("RequestedTradeMoneyHasBeenSetPlugIn", "The default implementation of the IRequestedTradeMoneyHasBeenSetPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("d07bc23a-e4ec-462b-96d6-b2da739664d0")]
 public class RequestedTradeMoneyHasBeenSetPlugIn : IRequestedTradeMoneyHasBeenSetPlugIn
 {

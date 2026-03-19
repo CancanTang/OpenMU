@@ -14,12 +14,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for jewel mix packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.JewelMixHandlerPlugIn_Name), Description = nameof(PlugInResources.JewelMixHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("JewelMixHandlerPlugIn", "Handler for jewel mix packets.")]
 [Guid("d6067475-a910-488d-8450-9310ae394c47")]
 internal class JewelMixHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly ItemStackAction _mixAction = new();
+    private readonly ItemStackAction _mixAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => LahapJewelMixRequest.HeaderType >= 0xC3;

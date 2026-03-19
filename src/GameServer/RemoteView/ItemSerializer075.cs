@@ -9,6 +9,7 @@ using MUnique.OpenMU.DataModel;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
+using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.PlugIns;
@@ -18,8 +19,7 @@ using MUnique.OpenMU.PlugIns;
 /// Each item is serialized into a 3-byte long part of an array.
 /// </summary>
 [Guid("A97F30CF-A189-43A2-9271-D3E5A24CC3FD")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ItemSerializer075_Name), Description = nameof(PlugInResources.ItemSerializer075_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Item Serializer 0.75", "The item serializer for game client version 0.75")]
 [MinimumClient(0, 75, ClientLanguage.Invariant)]
 public class ItemSerializer075 : IItemSerializer
 {
@@ -33,7 +33,7 @@ public class ItemSerializer075 : IItemSerializer
     public int NeededSpace => 3;
 
     /// <inheritdoc/>
-    public int SerializeItem(Span<byte> target, Item item)
+    public void SerializeItem(Span<byte> target, Item item)
     {
         item.ThrowNotInitializedProperty(item.Definition is null, nameof(item.Definition));
         target[0] = (byte)(item.Definition.Number & 0x0F);
@@ -58,8 +58,6 @@ public class ItemSerializer075 : IItemSerializer
         }
 
         target[2] = item.Durability();
-
-        return this.NeededSpace;
     }
 
     /// <inheritdoc />

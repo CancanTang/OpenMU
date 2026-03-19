@@ -35,8 +35,7 @@ using MUnique.OpenMU.PlugIns;
 /// x = exc option flags.
 /// </remarks>
 [Guid("4BD85C02-C43E-494D-B6B8-767ED94E09F0")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ItemSerializer095_Name), Description = nameof(PlugInResources.ItemSerializer095_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(ItemSerializer095), "The item serializer for game client version 0.95")]
 [MinimumClient(0, 95, ClientLanguage.Invariant)]
 public class ItemSerializer095 : IItemSerializer
 {
@@ -50,7 +49,7 @@ public class ItemSerializer095 : IItemSerializer
     public int NeededSpace => 4;
 
     /// <inheritdoc/>
-    public int SerializeItem(Span<byte> target, Item item)
+    public void SerializeItem(Span<byte> target, Item item)
     {
         item.ThrowNotInitializedProperty(item.Definition is null, nameof(item.Definition));
 
@@ -67,18 +66,8 @@ public class ItemSerializer095 : IItemSerializer
         var itemOption = item.ItemOptions.FirstOrDefault(o => o.ItemOption?.OptionType == ItemOptionTypes.Option);
         if (itemOption != null)
         {
-            var optionLevel = itemOption.Level;
-
-            // A dinorant can normally have up to 2 options, all being coded in the item option level.
-            // A one-option dino has level = 1, 2, or 4; a two-option has level = 3, 5, or 6.
-            if (item.Definition.Skill?.Number == 49)
-            {
-                item.ItemOptions.Where(o => o.ItemOption?.OptionType == ItemOptionTypes.Option && o != itemOption)
-                    .ForEach(o => optionLevel |= o.Level);
-            }
-
-            target[1] |= (byte)(optionLevel & 3);
-            target[3] |= (byte)((optionLevel & 4) << 4); // The highest bit is placed into the 2nd bit of the exc byte (0x40).
+            target[1] |= (byte)(itemOption.Level & 3);
+            target[3] |= (byte)((itemOption.Level & 4) << 4); // The highest bit is placed into the 2nd bit of the exc byte (0x40).
         }
 
         target[3] |= GetExcellentByte(item);
@@ -94,8 +83,6 @@ public class ItemSerializer095 : IItemSerializer
         }
 
         target[2] = item.Durability();
-
-        return this.NeededSpace;
     }
 
     /// <inheritdoc />

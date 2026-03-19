@@ -1,13 +1,10 @@
-﻿// <copyright file="DuelEndedPlugIn.cs" company="MUnique">
-// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-// </copyright>
+﻿using MUnique.OpenMU.GameLogic.Views;
+using MUnique.OpenMU.GameServer.RemoteView.World;
 
 namespace MUnique.OpenMU.GameServer.RemoteView.Duel;
 
 using System.Runtime.InteropServices;
-using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Duel;
-using MUnique.OpenMU.GameServer.RemoteView.World;
 using MUnique.OpenMU.Network.Packets.ServerToClient;
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.PlugIns;
@@ -15,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IDuelEndedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DuelEndedPlugIn_Name), Description = nameof(PlugInResources.DuelEndedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(DuelEndedPlugIn), "The default implementation of the IDuelEndedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("4FBC822B-F35B-4CB1-AFE6-180243171074")]
 [MinimumClient(4, 0, ClientLanguage.Invariant)]
 public class DuelEndedPlugIn : IDuelEndedPlugIn

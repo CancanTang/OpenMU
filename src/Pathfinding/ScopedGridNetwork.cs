@@ -56,7 +56,7 @@ public sealed class ScopedGridNetwork : BaseGridNetwork
     }
 
     /// <inheritdoc/>
-    public override bool Prepare(Point start, Point end, byte[,] grid, bool includeSafezone)
+    public override bool Prepare(Point start, Point end, byte[,] grid)
     {
         var diffX = Math.Abs(end.X - start.X);
         var diffY = Math.Abs(end.Y - start.Y);
@@ -66,7 +66,7 @@ public sealed class ScopedGridNetwork : BaseGridNetwork
         }
 
         this._actualSegmentSideLength = this._minimumSegmentSideLength;
-        while ((diffX > this._actualSegmentSideLength - 1 || diffY > this._actualSegmentSideLength - 1)
+        while ((diffX > this._actualSegmentSideLength || diffY > this._actualSegmentSideLength)
                && this._actualSegmentSideLength < this._maximumSegmentSideLength)
         {
             this._actualSegmentSideLength *= 2;
@@ -96,7 +96,7 @@ public sealed class ScopedGridNetwork : BaseGridNetwork
             }
         }
 
-        return base.Prepare(start, end, grid, includeSafezone);
+        return base.Prepare(start, end, grid);
 
         byte GetOffset(byte avgValue, int gridSize)
         {
@@ -106,22 +106,12 @@ public sealed class ScopedGridNetwork : BaseGridNetwork
         }
     }
 
-    /// <inheritdoc />
-    protected override bool IsWithinBounds(byte x, byte y)
-    {
-        return base.IsWithinBounds(x, y)
-               && x >= this._segmentOffset.X
-               && y >= this._segmentOffset.Y
-               && x < this._segmentOffset.X + this._actualSegmentSideLength
-               && y < this._segmentOffset.Y + this._actualSegmentSideLength;
-    }
-
     private int GetIndexOfPoint(int x, int y)
     {
         y -= this._segmentOffset.Y;
         x -= this._segmentOffset.X;
 
-        if (x < 0 || y < 0 || x >= this._actualSegmentSideLength || y >= this._actualSegmentSideLength)
+        if (x < 0 || y < 0)
         {
             return -1;
         }

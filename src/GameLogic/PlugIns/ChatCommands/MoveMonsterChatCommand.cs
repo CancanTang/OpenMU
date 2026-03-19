@@ -13,9 +13,8 @@ using MUnique.OpenMU.PlugIns;
 /// Chat command to instantly move a monster to specific coordinates.
 /// </summary>
 [Guid("B3DE58F3-B604-4F59-9122-E686AD90BE7B")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.MoveMonsterChatCommand_Name), Description = nameof(PlugInResources.MoveMonsterChatCommand_Description), ResourceType = typeof(PlugInResources))]
-[ChatCommandHelp(Command, typeof(MoveMonsterCommandArgs), CharacterStatus.GameMaster)]
+[PlugIn("Move remote monster chat command", "Handles the chat command '/movemonster <id> <x> <y>'. Moves a previously created monster which can be remote controlled by the GM.")]
+[ChatCommandHelp(Command, "Moves a previously created monster which can be remote controlled by the game master.", typeof(MoveMonsterCommandArgs), CharacterStatus.GameMaster)]
 internal class MoveMonsterChatCommand : ChatCommandPlugInBase<MoveMonsterCommandArgs>
 {
     private const string Command = "/movemonster";
@@ -32,7 +31,7 @@ internal class MoveMonsterChatCommand : ChatCommandPlugInBase<MoveMonsterCommand
         var monster = gameMaster.ObservingBuckets.SelectMany(b => b).OfType<Monster>().FirstOrDefault(m => m.Id == arguments.Id);
         if (monster is null)
         {
-            await gameMaster.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MonsterNotFoundById), arguments.Id).ConfigureAwait(false);
+            await this.ShowMessageToAsync(gameMaster, $"Monster with id {arguments.Id} not found.").ConfigureAwait(false);
             return;
         }
 

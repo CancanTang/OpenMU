@@ -22,17 +22,15 @@ public static class GameMapDefinitionExtensions
     {
         errorMessage = null;
 
-        if (gameMapDefinition.MapRequirements is null || !gameMapDefinition.MapRequirements.Any())
+        if (gameMapDefinition.MapRequirements != null && gameMapDefinition.MapRequirements.Any())
         {
-            return false;
-        }
-
-        foreach (var requirement in gameMapDefinition.MapRequirements)
-        {
-            if (player.Attributes is null || player.Attributes[requirement.Attribute] < requirement.MinimumValue)
+            foreach (var requirement in gameMapDefinition.MapRequirements)
             {
-                errorMessage = player.GetLocalizedMessage(PlayerMessage.MissingMapRequirement, requirement.Attribute?.Description);
-                return true;
+                if (player.Attributes is null || player.Attributes[requirement.Attribute] < requirement.MinimumValue)
+                {
+                    errorMessage = $"Missing requirement to enter the map: {requirement.Attribute?.Description}";
+                    return true;
+                }
             }
         }
 

@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.Persistence.InMemory;
 
 using System.Collections;
-using System.Threading;
 
 /// <summary>
 /// A repository which lives on memory only.
@@ -24,7 +23,7 @@ public class MemoryRepository<TValue> : IRepository<TValue>, IMemoryRepository
     /// <param name="obj">The item.</param>
     public void Add(Guid key, TValue obj)
     {
-        this._values.TryAdd(key, obj);
+        this._values.Add(key, obj);
         this._createdObjects.Add(key);
     }
 
@@ -48,10 +47,8 @@ public class MemoryRepository<TValue> : IRepository<TValue>, IMemoryRepository
     }
 
     /// <inheritdoc/>
-    public ValueTask<TValue?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public ValueTask<TValue?> GetByIdAsync(Guid id)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         this._values.TryGetValue(id, out var obj);
         return ValueTask.FromResult(obj);
     }
@@ -77,9 +74,9 @@ public class MemoryRepository<TValue> : IRepository<TValue>, IMemoryRepository
     }
 
     /// <inheritdoc/>
-    async ValueTask<object?> IRepository.GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    async ValueTask<object?> IRepository.GetByIdAsync(Guid id)
     {
-        return await this.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        return await this.GetByIdAsync(id).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -96,16 +93,14 @@ public class MemoryRepository<TValue> : IRepository<TValue>, IMemoryRepository
     }
 
     /// <inheritdoc/>
-    public async ValueTask<IEnumerable<TValue>> GetAllAsync(CancellationToken cancellationToken = default)
+    public ValueTask<IEnumerable<TValue>> GetAllAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        return this._values.Values.Cast<TValue>();
+        return ValueTask.FromResult(this._values.Values.Cast<TValue>());
     }
 
     /// <inheritdoc/>
-    async ValueTask<IEnumerable> IRepository.GetAllAsync(CancellationToken cancellationToken)
+    ValueTask<IEnumerable> IRepository.GetAllAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        return this._values.Values;
+        return ValueTask.FromResult<IEnumerable>(this._values.Values);
     }
 }

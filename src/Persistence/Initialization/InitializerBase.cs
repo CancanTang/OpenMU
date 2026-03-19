@@ -180,7 +180,6 @@ public abstract class InitializerBase : IInitializer
         itemOption.Number = number;
 
         itemOption.PowerUpDefinition = this.CreatePowerUpDefinition(attributeDefinition, value, aggregateType);
-        float baseValue = aggregateType == AggregateType.Multiplicate ? 1.0f : 0.0f;
 
         for (int level = 1; level <= this.MaximumOptionLevel; level++)
         {
@@ -188,22 +187,11 @@ public abstract class InitializerBase : IInitializer
             optionOfLevel.Level = level;
             optionOfLevel.PowerUpDefinition = this.CreatePowerUpDefinition(
                 itemOption.PowerUpDefinition.TargetAttribute!,
-                baseValue + (level * valueIncrementPerLevel),
+                level * valueIncrementPerLevel,
                 aggregateType);
             itemOption.LevelDependentOptions.Add(optionOfLevel);
         }
 
         return itemOption;
-    }
-
-    /// <summary>
-    /// Register the jewel (or jewel-like item) in the drop item group for jewels.
-    /// </summary>
-    /// <param name="item">The jewel you want to register.</param>
-    protected void AddItemToJewelItemDrop(ItemDefinition item)
-    {
-        var id = GuidHelper.CreateGuid<DropItemGroup>(4);
-        var jewelsItemDrop = this.GameConfiguration.DropItemGroups.First(x => x.GetId() == id);
-        jewelsItemDrop.PossibleItems.Add(item);
     }
 }

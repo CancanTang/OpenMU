@@ -2,8 +2,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <TieredPGO>true</TieredPGO>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>nullable;CS4014;VSTHRD110;VSTHRD100</WarningsAsErrors>
@@ -16,13 +18,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog" />
-    <PackageReference Include="Serilog.Extensions.Hosting" />
-    <PackageReference Include="Serilog.Settings.Configuration" />
-    <PackageReference Include="Serilog.Sinks.Console" />
-    <PackageReference Include="Serilog.Sinks.File" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
   </ItemGroup>
 
 
@@ -49,21 +51,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Target Name="FixNetSdkDiscoverAssetsBug" BeforeTargets="ResolveBuildCompressedStaticWebAssetsConfiguration">
-    <!-- Workaround for:
-   The "DiscoverPrecompressedAssets" task failed unexpectedly.
-   System.ArgumentException: An item with the same key has already been added. Key: C:\Users\[user]\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.0\_framework\blazor.web.js
-    
-   https://github.com/dotnet/sdk/issues/52089
-    
-   This is caused by a Microsoft.NET.Sdk.Web project (like this) referencing another project that also uses Microsoft.NET.Sdk.Web.
-   It appears to be a .NET SDK bug, and we're not the only one hitting it.
-   -->
-    <ItemGroup>
-      <!-- Remove any duplicate StaticWebAsset and StaticWebAssetEndpoint items -->
-      <_StaticWebAsset Include="@(StaticWebAsset)" />
-      <StaticWebAsset Remove="@(StaticWebAsset)" />
-      <StaticWebAsset Include="@(_StaticWebAsset->Distinct())" />
-    </ItemGroup>
-  </Target>
 </Project>

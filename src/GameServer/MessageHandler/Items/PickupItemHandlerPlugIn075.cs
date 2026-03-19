@@ -14,13 +14,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for item pickup packets for client version 0.75.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PickupItemHandlerPlugIn075_Name), Description = nameof(PlugInResources.PickupItemHandlerPlugIn075_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("PickupItemHandlerPlugIn 0.75", "Handler for item pickup packets for version 0.75.")]
 [Guid("185512C3-F5B7-489F-A1C1-DF07146560A4")]
 [MinimumClient(0, 75, ClientLanguage.Invariant)]
 internal class PickupItemHandlerPlugIn075 : IPacketHandlerPlugIn
 {
-    private readonly PickupItemAction _pickupAction = new();
+    private readonly PickupItemAction _pickupAction = new ();
 
     /// <inheritdoc />
     public bool IsEncryptionExpected => false;

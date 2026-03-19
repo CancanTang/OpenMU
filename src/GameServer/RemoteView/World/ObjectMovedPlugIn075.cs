@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The implementation of the <see cref="IObjectMovedPlugIn"/> for version 0.75 which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ObjectMovedPlugIn075_Name), Description = nameof(PlugInResources.ObjectMovedPlugIn075_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ObjectMovedPlugIn 0.75", "The default implementation of the IObjectMovedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("3B387A61-F9E2-4866-BBD6-F236582E350A")]
 public class ObjectMovedPlugIn075 : ObjectMovedPlugIn
 {
@@ -30,7 +29,7 @@ public class ObjectMovedPlugIn075 : ObjectMovedPlugIn
     }
 
     /// <inheritdoc />
-    protected override ValueTask SendWalkAsync(IConnection connection, ushort objectId, Point sourcePoint, Point targetPoint, Memory<Direction> steps, Direction rotation, int stepsLength)
+    protected override ValueTask SendWalkAsync(IConnection connection, ushort objectId, Point targetPoint, Memory<Direction> steps, Direction rotation, int stepsLength)
     {
         return connection.SendObjectWalked075Async(objectId, targetPoint.X, targetPoint.Y, rotation.ToPacketByte());
     }

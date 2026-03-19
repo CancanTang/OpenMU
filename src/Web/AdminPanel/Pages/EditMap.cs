@@ -7,7 +7,6 @@ namespace MUnique.OpenMU.Web.AdminPanel.Pages;
 using System.Reflection;
 using System.Threading;
 using Blazored.Modal.Services;
-using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Routing;
@@ -15,9 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.Persistence;
-using MUnique.OpenMU.Web.AdminPanel.Properties;
-using MUnique.OpenMU.Web.Shared;
-using MUnique.OpenMU.Web.Shared.Components;
+using MUnique.OpenMU.Web.AdminPanel;
+using MUnique.OpenMU.Web.AdminPanel.Components;
 
 /// <summary>
 /// A page, which shows an <see cref="MapEditor"/> for all <see cref="GameConfiguration.Maps"/>.
@@ -42,12 +40,6 @@ public sealed class EditMap : ComponentBase, IDisposable
     /// </summary>
     [Inject]
     private IModalService ModalService { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the toast service.
-    /// </summary>
-    [Inject]
-    private IToastService ToastService { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the game configuration.
@@ -86,19 +78,16 @@ public sealed class EditMap : ComponentBase, IDisposable
     {
         if (this._maps is { })
         {
-            builder.OpenComponent<Breadcrumb>(0);
-            builder.AddAttribute(1, nameof(Breadcrumb.Caption), Resources.MapEditor);
-            builder.CloseComponent();
-            builder.OpenComponent<CascadingValue<IContext>>(10);
-            builder.AddAttribute(12, nameof(CascadingValue<IContext>.Value), this._context);
-            builder.AddAttribute(13, nameof(CascadingValue<IContext>.IsFixed), false);
-            builder.AddAttribute(14, nameof(CascadingValue<IContext>.ChildContent), (RenderFragment)(builder2 =>
+            builder.OpenComponent<CascadingValue<IContext>>(1);
+            builder.AddAttribute(2, nameof(CascadingValue<IContext>.Value), this._context);
+            builder.AddAttribute(3, nameof(CascadingValue<IContext>.IsFixed), false);
+            builder.AddAttribute(4, nameof(CascadingValue<IContext>.ChildContent), (RenderFragment)(builder2 =>
             {
-                builder2.OpenComponent(15, typeof(MapEditor));
-                builder2.AddAttribute(16, nameof(MapEditor.Maps), this._maps);
-                builder2.AddAttribute(17, nameof(MapEditor.SelectedMapId), this.SelectedMapId);
-                builder2.AddAttribute(18, nameof(MapEditor.OnValidSubmit), EventCallback.Factory.Create(this, this.SaveChangesAsync));
-                builder2.AddAttribute(19, nameof(MapEditor.SelectedMapChanging), EventCallback.Factory.Create<MapEditor.MapChangingArgs>(this, this.OnSelectedMapChanging));
+                builder2.OpenComponent(5, typeof(MapEditor));
+                builder2.AddAttribute(6, nameof(MapEditor.Maps), this._maps);
+                builder2.AddAttribute(7, nameof(MapEditor.SelectedMapId), this.SelectedMapId);
+                builder2.AddAttribute(8, nameof(MapEditor.OnValidSubmit), EventCallback.Factory.Create(this, this.SaveChangesAsync));
+                builder2.AddAttribute(9, nameof(MapEditor.SelectedMapChanging), EventCallback.Factory.Create<MapEditor.MapChangingArgs>(this, this.OnSelectedMapChanging));
                 builder2.CloseComponent();
             }));
 
@@ -111,11 +100,11 @@ public sealed class EditMap : ComponentBase, IDisposable
     {
         await (this._disposeCts?.CancelAsync() ?? Task.CompletedTask).ConfigureAwait(false);
         this._disposeCts?.Dispose();
-        this._disposeCts = new CancellationTokenSource();
+        this._disposeCts = null;
 
-        this._context = await this.GameConfigurationSource.GetContextAsync(this._disposeCts.Token).ConfigureAwait(false);
+        this._context = await this.GameConfigurationSource.GetContextAsync().ConfigureAwait(false);
 
-        await base.OnParametersSetAsync().ConfigureAwait(false);
+        await base.OnParametersSetAsync();
     }
 
     /// <inheritdoc />
@@ -124,7 +113,7 @@ public sealed class EditMap : ComponentBase, IDisposable
         await base.OnAfterRenderAsync(firstRender).ConfigureAwait(false);
         if (this._maps is null)
         {
-            this._disposeCts ??= new CancellationTokenSource();
+            this._disposeCts = new CancellationTokenSource();
             var cts = this._disposeCts.Token;
             _ = Task.Run(() => this.LoadDataAsync(cts), cts);
         }
@@ -139,7 +128,7 @@ public sealed class EditMap : ComponentBase, IDisposable
 
     private async ValueTask OnBeforeInternalNavigation(LocationChangingContext context)
     {
-        if (!await this.AllowChangeAsync().ConfigureAwait(false))
+        if (! await this.AllowChangeAsync())
         {
             context.PreventNavigation();
         }
@@ -147,7 +136,7 @@ public sealed class EditMap : ComponentBase, IDisposable
 
     private async Task OnSelectedMapChanging(MapEditor.MapChangingArgs eventArgs)
     {
-        eventArgs.Cancel = !await this.AllowChangeAsync().ConfigureAwait(true);
+        eventArgs.Cancel = !await this.AllowChangeAsync();
         if (!eventArgs.Cancel)
         {
             this.SelectedMapId = eventArgs.NextMap;
@@ -156,25 +145,21 @@ public sealed class EditMap : ComponentBase, IDisposable
 
     private async ValueTask<bool> AllowChangeAsync()
     {
-        var cancellationToken = this._disposeCts?.Token ?? default;
-        var persistenceContext = await this.GameConfigurationSource.GetContextAsync(cancellationToken).ConfigureAwait(true);
+        var persistenceContext = await this.GameConfigurationSource.GetContextAsync();
         if (persistenceContext?.HasChanges is not true)
         {
             return true;
         }
 
-        var isConfirmed = await this.JavaScript.InvokeAsync<bool>(
-                "window.confirm",
-                cancellationToken,
-                Resources.UnsavedChangesQuestion)
-            .ConfigureAwait(true);
+        var isConfirmed = await JavaScript.InvokeAsync<bool>("window.confirm",
+            "There are unsaved changes. Are you sure you want to discard them?");
 
         if (!isConfirmed)
         {
             return false;
         }
 
-        await this.GameConfigurationSource.DiscardChangesAsync().ConfigureAwait(true);
+        await this.GameConfigurationSource.DiscardChangesAsync();
         this._maps = null;
 
         // OnAfterRender will load the maps again ...
@@ -190,7 +175,7 @@ public sealed class EditMap : ComponentBase, IDisposable
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                var gameConfig = await this.GameConfigurationSource.GetOwnerAsync(Guid.Empty, cancellationToken).ConfigureAwait(false);
+                var gameConfig = await this.GameConfigurationSource.GetOwnerAsync(Guid.Empty);
                 try
                 {
                     this._maps = gameConfig.Maps.OrderBy(c => c.Number).ToList();
@@ -198,7 +183,7 @@ public sealed class EditMap : ComponentBase, IDisposable
                 catch (Exception ex)
                 {
                     this.Logger.LogError(ex, $"Could not load game maps: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
-                    await this.ModalService.ShowMessageAsync(Resources.Error, Resources.CouldNotLoadMapDataCheckTheLogs).ConfigureAwait(false);
+                    await this.ModalService.ShowMessageAsync("Error", "Could not load the map data. Check the logs for details.").ConfigureAwait(false);
                 }
 
                 await showModalTask.ConfigureAwait(false);
@@ -220,17 +205,19 @@ public sealed class EditMap : ComponentBase, IDisposable
 
     private async Task SaveChangesAsync()
     {
+        string text;
         try
         {
             var context = await this.GameConfigurationSource.GetContextAsync().ConfigureAwait(true);
             var success = await context.SaveChangesAsync().ConfigureAwait(true);
-            var text = success ? Resources.SavedChanges : Resources.NoChangesToSave;
-            this.ToastService.ShowSuccess(text);
+            text = success ? "The changes have been saved." : "There were no changes to save.";
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, $"Error during saving");
-            this.ToastService.ShowError(string.Format(Resources.UnexpectedErrorCheckLogs, ex.Message));
+            text = $"An unexpected error occured: {ex.Message}.";
         }
+
+        await this.ModalService.ShowMessageAsync("Save", text);
     }
 }

@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for party request packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PartyRequestHandlerPlugIn_Name), Description = nameof(PlugInResources.PartyRequestHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("PartyRequestHandlerPlugIn", "Handler for party request packets.")]
 [Guid("759d5b1a-a2f9-4de8-a03e-023a4810111d")]
 internal class PartyRequestHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly PartyRequestAction _action = new();
+    private readonly PartyRequestAction _action = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

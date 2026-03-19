@@ -46,7 +46,7 @@ public class IncreaseHealthEffectInitializer : InitializerBase
 
         var powerUpDefinition = this.Context.CreateNew<PowerUpDefinition>();
         magicEffect.PowerUpDefinitions.Add(powerUpDefinition);
-        powerUpDefinition.TargetAttribute = Stats.TotalVitality.GetPersistent(this.GameConfiguration);
+        powerUpDefinition.TargetAttribute = Stats.MaximumHealth.GetPersistent(this.GameConfiguration);
 
         // one per 10 energy
         var boostPerEnergy = this.Context.CreateNew<AttributeRelationship>();
@@ -57,7 +57,6 @@ public class IncreaseHealthEffectInitializer : InitializerBase
         powerUpDefinition.Boost = this.Context.CreateNew<PowerUpDefinitionValue>();
         powerUpDefinition.Boost.ConstantValue.Value = 16f;
         powerUpDefinition.Boost.ConstantValue.AggregateType = AggregateType.AddFinal;
-        powerUpDefinition.Boost.MaximumValue = 200f;
         powerUpDefinition.Boost.RelatedValues.Add(boostPerEnergy);
     }
 }

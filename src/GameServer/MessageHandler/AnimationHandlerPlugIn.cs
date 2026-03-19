@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for animation packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.AnimationHandlerPlugIn_Name), Description = nameof(PlugInResources.AnimationHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("AnimationHandlerPlugIn", "Handler for animation packets.")]
 [Guid("5cf7fa95-5ca2-4e14-bb08-4b64250a8ee8")]
 internal class AnimationHandlerPlugIn : IPacketHandlerPlugIn
 {
@@ -44,7 +43,7 @@ internal class AnimationHandlerPlugIn : IPacketHandlerPlugIn
             0x80 => CharacterPose.Sitting,
             0x81 => CharacterPose.Leaning,
             0x82 => CharacterPose.Hanging,
-            _ => default,
+            _ => default
         };
 
         await player.ForEachWorldObserverAsync<IShowAnimationPlugIn>(p => p.ShowAnimationAsync(player, animation, null, rotation), false).ConfigureAwait(false);

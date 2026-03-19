@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="ICurrentlyActiveQuestsPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CurrentlyActiveQuestsPlugIn_Name), Description = nameof(PlugInResources.CurrentlyActiveQuestsPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Quest - Currently Active Quests", "The default implementation of the ICurrentlyActiveQuestsPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("9851157D-97CA-42F3-840C-8448D02B49A4")]
 [MinimumClient(5, 0, ClientLanguage.Invariant)]
 public class CurrentlyActiveQuestsPlugIn : ICurrentlyActiveQuestsPlugIn
@@ -43,16 +42,11 @@ public class CurrentlyActiveQuestsPlugIn : ICurrentlyActiveQuestsPlugIn
 
         int Write()
         {
-            const int maxQuestsPerPacket = 62;
-            var activeQuests = character.QuestStates
-                .Where(state => state.Group != QuestConstants.LegacyQuestGroup && state.ActiveQuest != null)
-                .Select(s => s.ActiveQuest!)
-                .Take(maxQuestsPerPacket)
-                .ToList();
+            var activeQuests = character.QuestStates.Where(state => state.Group != QuestConstants.LegacyQuestGroup && state.ActiveQuest != null).Select(s => s.ActiveQuest!).ToList();
             var size = QuestStateListRef.GetRequiredSize(activeQuests.Count);
             var span = connection.Output.GetSpan(size)[..size];
             var message = new QuestStateListRef(span);
-            byte i = 0;
+            int i = 0;
             foreach (var activeQuest in activeQuests)
             {
                 var questIdentification = message[i];
@@ -61,7 +55,6 @@ public class CurrentlyActiveQuestsPlugIn : ICurrentlyActiveQuestsPlugIn
                 i++;
             }
 
-            message.QuestCount = i;
             return size;
         }
 

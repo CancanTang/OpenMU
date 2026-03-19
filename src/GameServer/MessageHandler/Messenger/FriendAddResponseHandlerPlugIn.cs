@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for friend add response packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.FriendAddResponseHandlerPlugIn_Name), Description = nameof(PlugInResources.FriendAddResponseHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("FriendAddResponseHandlerPlugIn", "Handler for friend add response packets.")]
 [Guid("171b8f75-3927-4325-b694-54130365e4a2")]
 internal class FriendAddResponseHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly AddResponseAction _responseAction = new();
+    private readonly AddResponseAction _responseAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

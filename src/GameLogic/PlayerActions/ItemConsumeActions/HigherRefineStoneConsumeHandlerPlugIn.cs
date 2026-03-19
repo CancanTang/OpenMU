@@ -9,18 +9,17 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
-/// Consume handler for the Higher Refine Stone which increases the item option of <see cref="ItemOptionTypes.HarmonyOption"/>.
+/// Consume handler for the Lower Refine Stone which increases the item option of <see cref="ItemOptionTypes.HarmonyOption"/>.
 /// </summary>
 [Guid("A9F58DF6-06DB-4187-B386-9F00382333EE")]
-[PlugIn]
-[Display(Name = nameof(PlugInResources.HigherRefineStoneConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.HigherRefineStoneConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
-public class HigherRefineStoneConsumeHandlerPlugIn : RefineStoneUpgradeConsumeHandlerPlugIn
+[PlugIn(nameof(HigherRefineStoneConsumeHandlerPlugIn), "Plugin which handles the higher refine stone consumption.")]
+public class HigherRefineStoneConsumeHandlerPlugIn : ItemUpgradeConsumeHandlerPlugIn
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="HigherRefineStoneConsumeHandlerPlugIn" /> class.
     /// </summary>
     public HigherRefineStoneConsumeHandlerPlugIn()
-        : base(new ItemUpgradeConfiguration(ItemOptionTypes.HarmonyOption, false, true, 0.8, ItemFailResult.SetOptionToBaseLevel))
+        : base(new ItemUpgradeConfiguration(ItemOptionTypes.HarmonyOption, false, true, 0.5, ItemFailResult.SetOptionToLevelOne))
     {
     }
 

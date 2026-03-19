@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for item sale to npc packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.SellItemToNpcHandlerPlugIn_Name), Description = nameof(PlugInResources.SellItemToNpcHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("SellItemToNpcHandlerPlugIn", "Handler for item sale to npc packets.")]
 [Guid("8bbf8737-8731-4975-baa8-e14f77451b85")]
 internal class SellItemToNpcHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly SellItemToNpcAction _sellAction = new();
+    private readonly SellItemToNpcAction _sellAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

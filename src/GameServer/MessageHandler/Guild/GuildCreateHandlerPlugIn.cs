@@ -14,13 +14,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for guild create packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.GuildCreateHandlerPlugIn_Name), Description = nameof(PlugInResources.GuildCreateHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(GuildCreateHandlerPlugIn), "Handler for guild create packets.")]
 [Guid("0aae71c1-72df-47d6-af88-cddc5d5c7311")]
 [MinimumClient(1, 0, ClientLanguage.Invariant)]
 internal class GuildCreateHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly GuildCreateAction _createAction = new();
+    private readonly GuildCreateAction _createAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

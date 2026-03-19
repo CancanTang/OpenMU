@@ -13,13 +13,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Packet handler for character delete packets (0xF3, 0x02 identifier).
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.CharacterDeletePacketHandlerPlugIn_Name), Description = nameof(PlugInResources.CharacterDeletePacketHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Character - Delete", "Packet handler for character delete packets (0xF3, 0x02 identifier).")]
 [Guid("5391D003-E244-42E8-AF30-33CB0654B66A")]
 [BelongsToGroup(CharacterGroupHandlerPlugIn.GroupKey)]
 internal class CharacterDeletePacketHandlerPlugIn : ISubPacketHandlerPlugIn
 {
-    private readonly DeleteCharacterAction _deleteCharacterAction = new();
+    private readonly DeleteCharacterAction _deleteCharacterAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

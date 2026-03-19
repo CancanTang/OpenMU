@@ -1,11 +1,12 @@
-﻿@using MUnique.OpenMU.Interfaces
+﻿@using MUnique.OpenMU.Web.AdminPanel.Services
+@using MUnique.OpenMU.Interfaces
 @using System.ComponentModel
 
 @implements IDisposable
 
 <tr class="info">
     <td colspan="5">
-        <span>@MUnique.OpenMU.Web.AdminPanel.Properties.Resources.TotalPlayers: @this.GetPlayerCount()</span>
+        <span>Total Players: @this.GetPlayerCount()</span>
     </td>
 </tr>
 

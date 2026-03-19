@@ -1,6 +1,5 @@
-﻿// <copyright file="InitializeDuelPlugIn.cs" company="MUnique">
-// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-// </copyright>
+﻿using MUnique.OpenMU.GameServer.RemoteView.World;
+using MUnique.OpenMU.Persistence;
 
 namespace MUnique.OpenMU.GameServer.RemoteView.Duel;
 
@@ -8,7 +7,6 @@ using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Duel;
-using MUnique.OpenMU.GameServer.RemoteView.World;
 using MUnique.OpenMU.Network.Packets.ServerToClient;
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.PlugIns;
@@ -16,12 +14,12 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IInitializeDuelPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.InitializeDuelPlugIn_Name), Description = nameof(PlugInResources.InitializeDuelPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(InitializeDuelPlugIn), "The default implementation of the IInitializeDuelPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("41ECFA38-3EAE-4408-B7AC-82F26D8DCCD7")]
 [MinimumClient(4, 0, ClientLanguage.Invariant)]
 public class InitializeDuelPlugIn : IInitializeDuelPlugIn
 {
+    
     private readonly RemotePlayer _player;
 
     /// <summary>

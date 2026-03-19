@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.GameLogic.NPC;
 
 using System.Buffers;
-using System.Diagnostics;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.Views.World;
@@ -75,15 +74,11 @@ public sealed class Monster : AttackableNpcBase, IAttackable, IAttacker, ISuppor
     /// </value>
     public bool IsWalking => this.WalkTarget != default;
 
-    /// <inheritdoc />
-    public bool CanWalkOnSafezone => this._intelligence.CanWalkOnSafezone;
-
     /// <summary>
     /// Gets the target by which this instance was summoned by.
     /// </summary>
     public Player? SummonedBy => (this._intelligence as SummonedMonsterIntelligence)?.Owner;
 
-    /// <inheritdoc />
     public Point WalkTarget => this._walker.CurrentTarget;
 
     /// <inheritdoc/>
@@ -92,9 +87,6 @@ public sealed class Monster : AttackableNpcBase, IAttackable, IAttacker, ISuppor
     /// <inheritdoc/>
     /// <remarks>Monsters don't do combos.</remarks>
     public ComboStateMachine? ComboState => null;
-
-    /// <inheritdoc/>
-    protected override bool CanSpawnInSafezone => base.CanSpawnInSafezone || this.SummonedBy is not null;
 
     /// <summary>
     /// Attacks the specified target.
@@ -138,7 +130,7 @@ public sealed class Monster : AttackableNpcBase, IAttackable, IAttacker, ISuppor
         {
             pathFinder = await this._pathFinderPool.GetAsync().ConfigureAwait(false);
             pathFinder.ResetPathFinder();
-            calculatedPath = pathFinder.FindPath(this.Position, target, this.CurrentMap.Terrain.AIgrid, this.CanWalkOnSafezone);
+            calculatedPath = pathFinder.FindPath(this.Position, target, this.CurrentMap.Terrain.AIgrid);
             if (calculatedPath is null)
             {
                 return false;
@@ -191,15 +183,9 @@ public sealed class Monster : AttackableNpcBase, IAttackable, IAttacker, ISuppor
     /// <param name="steps">The steps.</param>
     public async ValueTask WalkToAsync(Point target, Memory<WalkingStep> steps)
     {
-        if (Debugger.IsAttached)
-        {
-            this.ValidatePath(steps);
-        }
-
         await this._walker.StopAsync().ConfigureAwait(false);
-        var token = await this._walker.InitializeWalkToAsync(target, steps).ConfigureAwait(false);
+        await this._walker.WalkToAsync(target, steps).ConfigureAwait(false);
         await this.MoveAsync(target, MoveType.Walk).ConfigureAwait(false);
-        await this._walker.StartWalkAsync(token).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -242,13 +228,11 @@ public sealed class Monster : AttackableNpcBase, IAttackable, IAttacker, ISuppor
             return;
         }
 
-        var moveByX = Rand.NextInt(-this.Definition.MoveRange, this.Definition.MoveRange + 1);
-        var moveByY = Rand.NextInt(-this.Definition.MoveRange, this.Definition.MoveRange + 1);
+        var moveByMaxX = Rand.NextInt(1, this.Definition.MoveRange + 1);
+        var moveByMaxY = Rand.NextInt(1, this.Definition.MoveRange + 1);
 
-        var newX = this.Position.X + moveByX;
-        var newY = this.Position.Y + moveByY;
-        byte randx = (byte)Math.Min(0xFF, Math.Max(0, newX));
-        byte randy = (byte)Math.Min(0xFF, Math.Max(0, newY));
+        byte randx = (byte)Rand.NextInt(Math.Max(0, this.Position.X - moveByMaxX), Math.Min(0xFF, this.Position.X + moveByMaxX + 1));
+        byte randy = (byte)Rand.NextInt(Math.Max(0, this.Position.Y - moveByMaxY), Math.Min(0xFF, this.Position.Y + moveByMaxY + 1));
 
         var target = new Point(randx, randy);
         if (this._intelligence.CanWalkOn(target))
@@ -327,7 +311,7 @@ public sealed class Monster : AttackableNpcBase, IAttackable, IAttacker, ISuppor
 
     private static WalkingStep GetStep(PathResultNode node)
     {
-        return new()
+        return new ()
         {
             Direction = node.PreviousPoint.GetDirectionTo(new Point(node.X, node.Y)),
             From = node.PreviousPoint,
@@ -356,28 +340,5 @@ public sealed class Monster : AttackableNpcBase, IAttackable, IAttacker, ISuppor
         }
 
         return (this.Attributes.CreateElement(powerUpDefinition), this.Attributes.CreateDurationElement(duration), powerUpDefinition.TargetAttribute);
-    }
-
-    private void ValidatePath(Memory<WalkingStep> steps)
-    {
-        const double maxInitialStepDistanceThreshold = 1.5; // Greater than sqrt(2) to consider diagonal steps, but lower than 2.
-
-        if (this.Position.EuclideanDistanceTo(steps.GetStart()) > maxInitialStepDistanceThreshold)
-        {
-            Debugger.Break();
-        }
-
-        foreach (var step in steps.Span)
-        {
-            if (this.CurrentMap.Terrain.AIgrid[step.To.X, step.To.Y] == 0)
-            {
-                Debugger.Break();
-            }
-
-            if (step.To.EuclideanDistanceTo(step.From) > maxInitialStepDistanceThreshold)
-            {
-                Debugger.Break();
-            }
-        }
     }
 }

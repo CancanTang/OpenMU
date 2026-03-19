@@ -16,14 +16,13 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IAssignPlayersToGuildPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.AssignPlayersToGuildPlugIn075_Name), Description = nameof(PlugInResources.AssignPlayersToGuildPlugIn075_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(AssignPlayersToGuildPlugIn075), "The default implementation of the IAssignPlayersToGuildPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("ABFA2CBD-1AB0-4F56-97A7-FCF458865ACF")]
 [MaximumClient(0, 89, ClientLanguage.Invariant)]
 public class AssignPlayersToGuildPlugIn075 : BaseGuildInfoPlugIn<AssignPlayersToGuildPlugIn075>, IAssignPlayersToGuildPlugIn
 {
     private readonly RemotePlayer _player;
-    private readonly HashSet<uint> _transmittedGuilds = new();
+    private readonly HashSet<uint> _transmittedGuilds = new ();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AssignPlayersToGuildPlugIn075"/> class.

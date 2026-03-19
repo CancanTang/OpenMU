@@ -12,8 +12,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// This update sets the right settings for the ignore defense skill.
 /// </summary>
-[PlugIn]
-[Display(Name = PlugInName, Description = PlugInDescription)]
+[PlugIn(PlugInName, PlugInDescription)]
 [Guid("8DEC7BC2-E6A0-4E46-B123-C92CB43B9ED5")]
 public class FixIgnoreDefenseSkillUpdatePlugIn : UpdatePlugInBase
 {

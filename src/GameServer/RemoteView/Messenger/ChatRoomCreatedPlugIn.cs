@@ -4,19 +4,16 @@
 
 namespace MUnique.OpenMU.GameServer.RemoteView.Messenger;
 
-using System.Net;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic.Views.Messenger;
 using MUnique.OpenMU.Interfaces;
-using MUnique.OpenMU.Network;
 using MUnique.OpenMU.Network.Packets.ServerToClient;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// The default implementation of the <see cref="IChatRoomCreatedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ChatRoomCreatedPlugIn_Name), Description = nameof(PlugInResources.ChatRoomCreatedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ChatRoomCreatedPlugIn", "The default implementation of the IChatRoomCreatedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("a7c99cb5-94f6-42ea-b6e2-2272a9a81e12")]
 public class ChatRoomCreatedPlugIn : IChatRoomCreatedPlugIn
 {
@@ -31,16 +28,8 @@ public class ChatRoomCreatedPlugIn : IChatRoomCreatedPlugIn
     /// <inheritdoc/>
     public async ValueTask ChatRoomCreatedAsync(ChatServerAuthenticationInfo authenticationInfo, string friendName, bool success)
     {
-        var hostAddress = authenticationInfo.HostAddress;
-        if (IPAddress.TryParse(authenticationInfo.HostAddress, out var chatServerAddress)
-            && chatServerAddress.IsOnSameHost()
-            && this._player.Connection?.LocalEndPoint is IPEndPoint localEndPoint)
-        {
-            hostAddress = localEndPoint.Address.ToString();
-        }
-
         await this._player.Connection.SendChatRoomConnectionInfoAsync(
-            hostAddress,
+            authenticationInfo.HostAddress,
             authenticationInfo.RoomId,
             uint.Parse(authenticationInfo.AuthenticationToken),
             friendName,

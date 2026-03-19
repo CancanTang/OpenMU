@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.PlugIns.Tests;
 
-using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.PlugIns;
@@ -14,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// </summary>
 /// <seealso cref="IExamplePlugIn" />
 [Guid("9FCA692F-2BD5-4310-8755-E20761F94180")]
-[PlugIn]
-[Display(Name = nameof(ExamplePlugIn), Description = "Just an example plugin.")]
+[PlugIn(nameof(ExamplePlugIn), "Just an example plugin.")]
 internal class ExamplePlugIn : IExamplePlugIn
 {
     /// <summary>
@@ -35,8 +33,7 @@ internal class ExamplePlugIn : IExamplePlugIn
     /// </summary>
     /// <seealso cref="IExamplePlugIn" />
     [Guid("B6D7E11D-E99D-4466-BAE1-87B043ED345D")]
-    [PlugIn]
-    [Display(Name = nameof(NestedPlugIn), Description = "A nested example plugin.")]
+    [PlugIn(nameof(NestedPlugIn), "A nested example plugin.")]
     internal class NestedPlugIn : IExamplePlugIn
     {
         /// <inheritdoc/>
@@ -50,8 +47,7 @@ internal class ExamplePlugIn : IExamplePlugIn
     /// A plugin of a nested type which doesn't have a guid.
     /// </summary>
     /// <seealso cref="IExamplePlugIn" />
-    [PlugIn]
-    [Display(Name = nameof(NestedPlugIn), Description = "A nested example plugin without Guid.")]
+    [PlugIn(nameof(NestedPlugIn), "A nested example plugin without Guid.")]
     internal class NestedWithoutGuid : IExamplePlugIn
     {
         /// <inheritdoc/>

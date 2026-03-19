@@ -137,7 +137,7 @@ public class PlugInContainerBase<TPlugIn> : IPlugInContainer<TPlugIn>
     private TPlugIn? FindActivePlugin(Type plugInType)
     {
         using var l = this.Lock.ReaderLock();
-        return this.ActivePlugIns.FirstOrDefault(p => p.GetType() == plugInType);
+        return this.ActivePlugIns.FirstOrDefault(plugInType.IsInstanceOfType);
     }
 
     private bool IsEventRelevant(PlugInEventArgs e) => typeof(TPlugIn).IsAssignableFrom(e.PlugInType);

@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.GameLogic.PlugIns.InvasionEvents;
 
 using MUnique.OpenMU.GameLogic.PlugIns.PeriodicTasks;
-using MUnique.OpenMU.Interfaces;
 
 /// <summary>
 /// Game server state per event.
@@ -34,11 +33,11 @@ public class InvasionGameServerState : PeriodicTaskGameServerState
     /// <summary>
     /// Gets the name of the map.
     /// </summary>
-    public LocalizedString MapName => this.Map.Name;
+    public string MapName => this.Map.Name;
 
     /// <inheritdoc />
-    public override string? ToString()
+    public override string ToString()
     {
-        return this.MapName.ToString();
+        return this.MapName;
     }
 }

@@ -20,10 +20,4 @@ public class QuestMonsterKillRequirementState
     /// Gets or sets the monster kill count for this <see cref="Requirement"/>.
     /// </summary>
     public int KillCount { get; set; }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{this.KillCount}/{this.Requirement?.MinimumNumber} {this.Requirement?.Monster}";
-    }
 }

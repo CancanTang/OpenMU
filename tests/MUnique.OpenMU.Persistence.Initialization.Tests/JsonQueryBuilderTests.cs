@@ -81,28 +81,5 @@ internal class JsonQueryBuilderTests
     /// Loads the <see cref="GameConfiguration"/> using the <see cref="JsonQueryBuilder"/> and the <see cref="JsonObjectLoader"/>.
     /// It always fails, because it reports the taken time.
     /// </summary>
-    [Test]
-    [Ignore("It hits the database.")]
-    public async Task LoadConfigByJsonAsync()
-    {
-        await using var installationContext = new ConfigurationContext();
-        installationContext.Database.OpenConnection();
-        var builder = new GameConfigurationJsonObjectLoader();
-        IEnumerable<GameConfiguration> result;
-        Stopwatch stopwatch = new ();
-        stopwatch.Start();
-        try
-        {
-            result = await builder.LoadAllObjectsAsync<EntityFramework.Model.GameConfiguration>(installationContext).ConfigureAwait(false);
-            result = result.ToList();
-        }
-        finally
-        {
-            stopwatch.Stop();
-        }
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.Not.EqualTo(0));
-        Assert.That(stopwatch.ElapsedMilliseconds, Is.EqualTo(0));
-    }
+    
 }

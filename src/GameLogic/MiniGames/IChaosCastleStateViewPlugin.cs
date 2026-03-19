@@ -2,9 +2,9 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
-namespace MUnique.OpenMU.GameLogic.MiniGames;
-
 using MUnique.OpenMU.GameLogic.Views;
+
+namespace MUnique.OpenMU.GameLogic.MiniGames;
 
 /// <summary>
 /// Interface of a view whose implementation informs about the status of a chaos castle event.

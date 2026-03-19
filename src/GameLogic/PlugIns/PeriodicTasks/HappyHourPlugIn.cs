@@ -13,8 +13,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// This plugin enables Happy Hour feature.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.HappyHourPlugIn_Name), Description = nameof(PlugInResources.HappyHourPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn(nameof(HappyHourPlugIn), "Handle Happy Hour event")]
 [Guid("6542E452-9780-45B8-85AE-4036422E9A6E")]
 public class HappyHourPlugIn : PeriodicTaskBasePlugIn<HappyHourConfiguration, PeriodicTaskGameServerState>, ISupportDefaultCustomConfiguration, IPlayerStateChangedPlugIn
 {
@@ -117,6 +116,8 @@ public class HappyHourPlugIn : PeriodicTaskBasePlugIn<HappyHourConfiguration, Pe
             return;
         }
 
+        var message = configuration.Message ?? "Happy Hour event has been started!";
+
         if (!this.IsPlayerOnMap(player))
         {
             return;
@@ -124,7 +125,6 @@ public class HappyHourPlugIn : PeriodicTaskBasePlugIn<HappyHourConfiguration, Pe
 
         try
         {
-            var message = configuration.Message.GetTranslation(player.Culture) is { Length: > 0 } translation ? translation : player.GetLocalizedMessage(nameof(PlayerMessage.HappyHourEventHasBeenStarted));
             await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(message, Interfaces.MessageType.GoldenCenter)).ConfigureAwait(false);
         }
         catch (Exception ex)

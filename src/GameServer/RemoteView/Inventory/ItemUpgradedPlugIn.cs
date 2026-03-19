@@ -14,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IItemUpgradedPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ItemUpgradedPlugIn_Name), Description = nameof(PlugInResources.ItemUpgradedPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ItemUpgradedPlugIn", "The default implementation of the IItemUpgradedPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("ce4ed0a2-ec4e-4cbe-aabe-5573df86a659")]
 public class ItemUpgradedPlugIn : IItemUpgradedPlugIn
 {
@@ -45,10 +44,8 @@ public class ItemUpgradedPlugIn : IItemUpgradedPlugIn
             {
                 InventorySlot = item.ItemSlot,
             };
-            var itemSize = itemSerializer.SerializeItem(packet.ItemData, item);
-            var actualSize = InventoryItemUpgradedRef.GetRequiredSize(itemSize);
-            span.Slice(0, actualSize).SetPacketSize();
-            return actualSize;
+            itemSerializer.SerializeItem(packet.ItemData, item);
+            return size;
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);

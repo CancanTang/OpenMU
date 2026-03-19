@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions.PlayerStore;
 
-using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic.Views.PlayerShop;
 
 /// <summary>
@@ -20,28 +19,15 @@ public class OpenStoreAction
     public async ValueTask OpenStoreAsync(Player player, string storeName)
     {
         using var loggerScope = player.Logger.BeginScope(this.GetType());
-        var character = player.SelectedCharacter;
-        if (character is null)
-        {
-            player.Logger.LogWarning("OpenStore request failed: No character selected.");
-            return;
-        }
-
         if (player.ShopStorage?.Items.Any(i => !i.StorePrice.HasValue) ?? true)
         {
-            player.Logger.LogWarning("OpenStore request failed: Not all store items have a price assigned. Player: [{0}], StoreName: [{1}]", character.Name, character.StoreName);
+            player.Logger.LogWarning("OpenStore request failed: Not all store items have a price assigned. Player: [{0}], StoreName: [{1}]", player.SelectedCharacter?.Name, player.ShopStorage?.StoreName);
             return;
         }
 
-        if (player.ShopStorage?.Items.Any(i => i.ItemOptions.Any(o => o.ItemOption?.OptionType == ItemOptionTypes.HarmonyOption)) ?? true)
-        {
-            player.Logger.LogWarning("OpenStore request failed: Items with an harmony option can't be traded. Player: [{0}], StoreName: [{1}]", character.Name, character.StoreName);
-            return;
-        }
-
-        character.StoreName = storeName;
+        player.ShopStorage.StoreName = storeName;
         player.ShopStorage.StoreOpen = true;
-        player.Logger.LogDebug("OpenStore: Player: [{0}], StoreName: [{1}]", character.Name, character.StoreName);
+        player.Logger.LogDebug("OpenStore: Player: [{0}], StoreName: [{1}]", player.SelectedCharacter!.Name, player.ShopStorage.StoreName);
         await player.ForEachWorldObserverAsync<IPlayerShopOpenedPlugIn>(p => p.PlayerShopOpenedAsync(player), true).ConfigureAwait(false);
     }
 }

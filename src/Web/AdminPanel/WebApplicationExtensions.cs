@@ -6,22 +6,18 @@ namespace MUnique.OpenMU.Web.AdminPanel;
 
 using System.IO;
 using Blazored.Modal;
-using Blazored.Toast;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using MUnique.OpenMU.DataModel;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
-using MUnique.OpenMU.Web.AdminPanel.Components;
+using MUnique.OpenMU.Web.AdminPanel.Models;
 using MUnique.OpenMU.Web.AdminPanel.Services;
-using MUnique.OpenMU.Web.Shared.Models;
-using MUnique.OpenMU.Web.Shared.Services;
 
 /// <summary>
 /// Extensions for the <see cref="WebApplicationBuilder"/>.
@@ -42,32 +38,21 @@ public static class WebApplicationExtensions
         // Ensure that DataInitialization plugins will get collected - for the setup functionality.
         _ = DataInitialization.Id;
 
-        var services = builder.Services;
-
-        var supportedCultures = CultureHelper
-            .GetAvailableCultures<Properties.Resources>()
-            .Select(culture => culture.TwoLetterISOLanguageName)
-            .ToArray();
-        services.AddLocalization()
-            .Configure<RequestLocalizationOptions>(o =>
-            {
-                o.AddSupportedCultures(supportedCultures);
-                o.AddSupportedUICultures(supportedCultures);
-            });
-        services.AddRazorComponents()
-            .AddInteractiveServerComponents();
-
+        var mvcBuilder = builder.Services.AddRazorPages();
         if (includeMapApp)
         {
             AdminPanelEnvironment.IsHostingEmbedded = true;
+            mvcBuilder.AddApplicationPart(typeof(Map.Exports).Assembly);
         }
 
+        builder.Services.AddServerSideBlazor();
+
+        var services = builder.Services;
         services.AddControllers()
             .ConfigureApplicationPartManager(setup =>
                 setup.FeatureProviders.Add(new GenericControllerFeatureProvider()));
 
         services.AddBlazoredModal();
-        services.AddBlazoredToast();
 
         services.AddScoped<ILookupController, PersistentObjectsLookupController>();
 
@@ -81,7 +66,7 @@ public static class WebApplicationExtensions
         services.AddScoped<IDataService<PlugInConfigurationViewItem>>(serviceProvider => serviceProvider.GetService<PlugInController>()!);
         services.AddScoped<IUserService, NginxHtpasswdFileUserService>();
         services.AddScoped<IChangeNotificationService, ChangeNotificationService>();
-        services.AddScoped<NavigationHistory>();
+
         services.AddScoped<LoggedInAccountService>();
         services.AddScoped<IDataService<LoggedInAccount>>(serviceProvider => serviceProvider.GetService<LoggedInAccountService>()!);
 
@@ -102,7 +87,7 @@ public static class WebApplicationExtensions
         }
         else
         {
-            app.UseExceptionHandler("/Error", createScopeForErrors: true);
+            app.UseExceptionHandler("/Error");
         }
 
         app.UseStaticFiles();
@@ -112,14 +97,9 @@ public static class WebApplicationExtensions
             RequestPath = "/logs",
         });
 
-        app.UseAntiforgery();
-
-        app.MapStaticAssets();
-
-        app.UseRequestLocalization();
-
-        app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode();
+        app.UseRouting();
+        app.MapBlazorHub();
+        app.MapFallbackToPage("/_Host");
 
         app.MapControllers();
 

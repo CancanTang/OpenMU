@@ -7,22 +7,26 @@ namespace MUnique.OpenMU.GameServer.MessageHandler;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.PlayerActions.Skills;
-using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.Network.Packets.ClientToServer;
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
-/// Implements the targeted skill packet handler.
+/// Handler for targeted skill packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.TargetedSkillHandlerPlugIn_Name), Description = nameof(PlugInResources.TargetedSkillHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("TargetedSkillHandlerPlugIn", "Handler for targeted skill packets.")]
 [Guid("5b07d03c-509c-4aec-972c-a99db77561f2")]
 [MinimumClient(3, 0, ClientLanguage.Invariant)]
 internal class TargetedSkillHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly ITargetedSkillPlugin _defaultStrategy = new TargetedSkillDefaultPlugin();
+    private const ushort ForceSkillId = 60;
+    private const ushort ForceWaveSkillId = 66;
+    private const ushort NovaSkillId = 40;
+    private const ushort NovaStartId = 58;
+
+    private readonly TargetedSkillAction _attackAction = new();
+    private readonly NovaSkillAction _novaSkillAction = new();
 
     /// <inheritdoc/>
     public virtual bool IsEncryptionExpected => true;
@@ -46,14 +50,37 @@ internal class TargetedSkillHandlerPlugIn : IPacketHandlerPlugIn
     /// <param name="targetId">The target identifier.</param>
     protected async ValueTask HandleAsync(Player player, ushort skillId, ushort targetId)
     {
-        var strategy = player.GameContext.
-            PlugInManager.GetStrategy<short, ITargetedSkillPlugin>((short)skillId) ??
-            this._defaultStrategy;
+        var checkSkill = skillId == NovaStartId ? NovaSkillId : skillId;
+        if (player.SkillList is null || !player.SkillList.ContainsSkill(checkSkill))
+        {
+            return;
+        }
 
-        // Note: The target can be the own player too, for example when using buff skills.
+        // Special handling of force wave skill. The client might send skill id 60,
+        // even though it's performing force wave.
+        if (skillId == ForceSkillId && player.SkillList.ContainsSkill(ForceWaveSkillId))
+        {
+            skillId = ForceWaveSkillId;
+        }
+
+        if (skillId is NovaSkillId or NovaStartId)
+        {
+            if (skillId == NovaStartId)
+            {
+                await this._novaSkillAction.StartNovaSkillAsync(player).ConfigureAwait(false);
+            }
+            else
+            {
+                await this._novaSkillAction.StopNovaSkillAsync(player, targetId).ConfigureAwait(false);
+            }
+
+            return;
+        }
+
+        // The target can be the own player too, for example when using buff skills.
         if (player.GetObject(targetId) is IAttackable target)
         {
-            await strategy.PerformSkillAsync(player, target, skillId).ConfigureAwait(false);
+            await this._attackAction.PerformSkillAsync(player, target, skillId).ConfigureAwait(false);
         }
     }
 }

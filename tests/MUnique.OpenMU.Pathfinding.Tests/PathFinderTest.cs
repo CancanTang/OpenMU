@@ -30,15 +30,6 @@ public class PathFinderTest
             }
         }
 
-        // Safezone:
-        for (int x = 50; x < 100; x++)
-        {
-            for (int y = 50; y < 100; y++)
-            {
-                this._grid[x, y] = 0b1000_0001;
-            }
-        }
-
         this._pathFinder = new PathFinder(new ScopedGridNetwork());
     }
 
@@ -50,40 +41,12 @@ public class PathFinderTest
     {
         var start = new Point(110, 100);
         var end = new Point(115, 100);
-        var result = this._pathFinder.FindPath(start, end, this._grid, false);
+        var result = this._pathFinder.FindPath(start, end, this._grid);
         Assert.That(result, Is.Not.Null);
         var lastNode = result!.LastOrDefault();
         Assert.That(lastNode, Is.Not.Null);
         Assert.That(lastNode.X, Is.EqualTo(end.X));
         Assert.That(lastNode.Y, Is.EqualTo(end.Y));
-    }
-
-    /// <summary>
-    /// Tests the straight path.
-    /// </summary>
-    [Test]
-    public void TestStraightPath_InSafezone()
-    {
-        var start = new Point(51, 60);
-        var end = new Point(60, 60);
-        var result = this._pathFinder.FindPath(start, end, this._grid, true);
-        Assert.That(result, Is.Not.Null);
-        var lastNode = result!.LastOrDefault();
-        Assert.That(lastNode, Is.Not.Null);
-        Assert.That(lastNode.X, Is.EqualTo(end.X));
-        Assert.That(lastNode.Y, Is.EqualTo(end.Y));
-    }
-
-    /// <summary>
-    /// Tests the straight path.
-    /// </summary>
-    [Test]
-    public void TestStraightPath_InSafezone_ButNotIncluded()
-    {
-        var start = new Point(51, 60);
-        var end = new Point(60, 60);
-        var result = this._pathFinder.FindPath(start, end, this._grid, false);
-        Assert.That(result, Is.Null);
     }
 
     /// <summary>
@@ -94,7 +57,7 @@ public class PathFinderTest
     {
         var start = new Point(100, 100);
         var end = new Point(110, 110);
-        var result = this._pathFinder.FindPath(start, end, this._grid, false);
+        var result = this._pathFinder.FindPath(start, end, this._grid);
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Count, Is.EqualTo(10));
         for (int i = 1; i <= 10; i++)
@@ -115,7 +78,7 @@ public class PathFinderTest
     {
         var start = new Point(110, 100);
         var end = new Point(115, 99);
-        var result = this._pathFinder.FindPath(start, end, this._grid, false);
+        var result = this._pathFinder.FindPath(start, end, this._grid);
         Assert.That(result, Is.Null);
     }
 }

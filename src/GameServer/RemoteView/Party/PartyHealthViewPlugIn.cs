@@ -15,8 +15,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the party view which is forwarding everything to the game client which specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.PartyHealthViewPlugIn_Name), Description = nameof(PlugInResources.PartyHealthViewPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("Party View", "The default implementation of the party view which is forwarding everything to the game client which specific data packets.")]
 [Guid("CEE58BCB-FB8C-4AEB-9FC8-5D3A11FA7C03")]
 [MinimumClient(0, 90, ClientLanguage.Invariant)]
 public class PartyHealthViewPlugIn : IPartyHealthViewPlugIn

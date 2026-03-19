@@ -13,12 +13,11 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// Handler for delete friend packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.DeleteFriendHandlerPlugIn_Name), Description = nameof(PlugInResources.DeleteFriendHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("DeleteFriendHandlerPlugIn", "Handler for delete friend packets.")]
 [Guid("82d21573-64bd-439e-9368-8fc227475942")]
 internal class DeleteFriendHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly DeleteFriendAction _deleteAction = new();
+    private readonly DeleteFriendAction _deleteAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

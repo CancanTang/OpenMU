@@ -14,12 +14,11 @@ using TradeButtonState = MUnique.OpenMU.GameLogic.Views.Trade.TradeButtonState;
 /// <summary>
 /// Handles the trade button packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.TradeButtonHandlerPlugIn_Name), Description = nameof(PlugInResources.TradeButtonHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("TradeButtonHandlerPlugIn", "Handles the trade button packets.")]
 [Guid("4e70bdec-c890-4e7d-93a9-1801f821f322")]
 internal class TradeButtonHandlerPlugIn : IPacketHandlerPlugIn
 {
-    private readonly TradeButtonAction _buttonAction = new();
+    private readonly TradeButtonAction _buttonAction = new ();
 
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;

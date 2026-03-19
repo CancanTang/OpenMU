@@ -5,7 +5,6 @@
 namespace MUnique.OpenMU.GameServer.RemoteView.NPC;
 
 using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 using MUnique.OpenMU.Network;
@@ -15,8 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// <summary>
 /// The default implementation of the <see cref="IShowMerchantStoreItemListPlugIn"/> which is forwarding everything to the game client with specific data packets.
 /// </summary>
-[PlugIn]
-[Display(Name = nameof(PlugInResources.ShowMerchantStoreItemListPlugIn_Name), Description = nameof(PlugInResources.ShowMerchantStoreItemListPlugIn_Description), ResourceType = typeof(PlugInResources))]
+[PlugIn("ShowMerchantStoreItemListPlugIn", "The default implementation of the IShowMerchantStoreItemListPlugIn which is forwarding everything to the game client with specific data packets.")]
 [Guid("53e00ae0-4d5b-4f63-88e0-7d526f8438af")]
 public class ShowMerchantStoreItemListPlugIn : IShowMerchantStoreItemListPlugIn
 {
@@ -49,27 +47,16 @@ public class ShowMerchantStoreItemListPlugIn : IShowMerchantStoreItemListPlugIn
                 Type = Convert(storeKind),
             };
 
-            int headerSize = StoreItemListRef.GetRequiredSize(0, 0);
-            int actualSize = headerSize;
             int i = 0;
             foreach (var item in storeItems)
             {
-                if (item.Definition is null)
-                {
-                    this._player.Logger.LogWarning("Item {0} has no definition.", item);
-                    packet.ItemCount--;
-                    continue;
-                }
-
-                var storedItem = new StoredItemRef(span[actualSize..]);
+                var storedItem = packet[i, sizePerItem];
                 storedItem.ItemSlot = item.ItemSlot;
-                var itemSize = itemSerializer.SerializeItem(storedItem.ItemData, item);
-                actualSize += StoredItemRef.GetRequiredSize(itemSize);
+                itemSerializer.SerializeItem(storedItem.ItemData, item);
                 i++;
             }
 
-            span.Slice(0, actualSize).SetPacketSize();
-            return actualSize;
+            return size;
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);
