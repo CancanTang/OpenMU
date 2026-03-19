@@ -27,7 +27,7 @@ public static class Exports
             yield return "_content/Blazored.Typeahead/blazored-typeahead.js";
             yield return "_content/Blazored.Modal/blazored.modal.js";
             yield return "_content/BlazorInputFile/inputfile.js";
-            yield return $"{Prefix}/js/map.js";
+            yield return $"{Prefix}/js/admin-map.js";
         }
     }
 

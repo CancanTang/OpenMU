@@ -35,10 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\css\site.css">
+    <Content Update="wwwroot\css\map.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\css\site.min.css">
+    <Content Update="wwwroot\css\map.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\img\attackable_alphamap.png">

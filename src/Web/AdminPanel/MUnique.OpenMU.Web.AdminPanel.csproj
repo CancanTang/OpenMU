@@ -78,13 +78,13 @@
     <Content Update="wwwroot\css\open-iconic\font\fonts\open-iconic.woff">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\css\site.css">
+    <Content Update="wwwroot\css\admin.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\css\site.min.css">
+    <Content Update="wwwroot\css\admin.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\js\map.js">
+    <Content Update="wwwroot\js\admin-map.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

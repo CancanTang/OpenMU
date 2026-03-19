@@ -22,7 +22,7 @@ public static class Exports
     public static ImmutableList<string> Scripts { get; } = new[]
     {
         $"{Prefix}/js/system-production.js",
-        $"{Prefix}/js/map.js",
+        $"{Prefix}/js/admin-map.js",
         $"{Prefix}/js/app.js",
         $"{Prefix}/js/Stats.js",
     }.ToImmutableList();
